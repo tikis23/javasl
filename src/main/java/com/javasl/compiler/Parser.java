@@ -9,14 +9,15 @@ public class Parser {
         if (tokens == null) {
             throw new IllegalArgumentException("Parser error: tokens is null.");
         }
-        m_tokens = tokens;
-        m_index = 0;
 
         // make all tokens in a block
         Token open = new Token(Token.Type.OPEN_CURLY_BRACKET, "{");
         Token close = new Token(Token.Type.CLOSE_CURLY_BRACKET, "}");
         tokens.add(0, open);
         tokens.add(close);
+
+        m_tokens = tokens;
+        m_index = 0;
 
         try {
             return parseBlock();
@@ -73,7 +74,15 @@ public class Parser {
     }
     private AST parseStatement() {
         int backup = backup();
+        // comment
+        Token comment = peek(0);
+        while (comment != null && comment.type == Token.Type.COMMENT) {
+            comment = next();
+            backup = backup();
+        }
+
         // block
+        restoreBackup(backup);
         AST node = parseBlock();
         if (node != null) {
             return node;
@@ -215,6 +224,19 @@ public class Parser {
         }
 
         // TODO: function calls
+
+        // literal number with prefix -
+        if (token.type == Token.Type.OP_MINUS) {
+            Token next = peek(0);
+            if (next != null && next.type == Token.Type.LIT_NUMBER) {
+                next(); // consume next
+                next.textRepresentation = "-" + next.textRepresentation;
+                LiteralNode node = new LiteralNode();
+                node.literal = next;
+                return node;
+            }
+            throw new RuntimeException("Unexpected '-'.");
+        }
 
         // literal
         if (token.getTypeGroup() == Token.TypeGroup.LITERAL) {

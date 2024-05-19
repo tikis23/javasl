@@ -4,14 +4,14 @@ public class Main {
     public static void main(String[] args) {
         Script script = new Script();
         try {
-            script.compileFromFile("scripts/testS1.jsl");
+            script.compileFromFile("scripts/TestS1.jsl");
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            e.printStackTrace();
         }
         if (script.isReady()) {
-            System.out.println("Script is ready!");
+            script.run();
         } else {
-            System.out.println("Script is not ready!");
+            System.out.println("Script is not ready");
         }
     }
 }

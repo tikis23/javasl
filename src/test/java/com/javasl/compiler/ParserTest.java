@@ -8,15 +8,8 @@ import com.javasl.compiler.ast.*;
 import java.util.ArrayList;
 
 public class ParserTest {
-    @Test public void testAssignmentHardcoded() {
+    @Test public void testAssignment() {
         {
-            ArrayList<Token> tokens = new ArrayList<Token>(){{
-                add(new Token(Token.Type.T_INT64, "int64"));
-                add(new Token(Token.Type.IDENTIFIER, "x"));
-                add(new Token(Token.Type.OP_ASSIGN, "="));
-                add(new Token(Token.Type.LIT_NUMBER, "1"));
-                add(new Token(Token.Type.SEMICOLON, ";"));
-            }};
             BlockNode expectedAst = new BlockNode();
             expectedAst.statements.add(new AssignmentNode() {{
                 lhs = new DeclarationNode() {{
@@ -28,21 +21,75 @@ public class ParserTest {
                 }};
             }});
 
-            Parser parser = new Parser();
-            AST ast = parser.parse(tokens);
-            Assertions.assertNotNull(ast);
-            CompareAST(expectedAst, ast);
+            // harcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.T_INT64, "int64"));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.LIT_NUMBER, "1"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("int64 x = 1;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
         }
         {
-            ArrayList<Token> tokens = new ArrayList<Token>(){{
-                add(new Token(Token.Type.IDENTIFIER, "customType"));
-                add(new Token(Token.Type.IDENTIFIER, "customName89"));
-                add(new Token(Token.Type.OP_ASSIGN, "="));
-                add(new Token(Token.Type.LIT_NUMBER, "1"));
-                add(new Token(Token.Type.OP_PLUS, "+"));
-                add(new Token(Token.Type.LIT_NUMBER, "998"));
-                add(new Token(Token.Type.SEMICOLON, ";"));
-            }};
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_INT64, "int64");
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                rhs = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_MULTIPLY, "*");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "-99");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "-1");
+                    }};
+                }};
+            }});
+
+            // harcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.T_INT64, "int64"));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.LIT_NUMBER, "-99"));
+                    add(new Token(Token.Type.OP_MULTIPLY, "*"));
+                    add(new Token(Token.Type.LIT_NUMBER, "-1"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("int64 x = -99 * -1;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+        }
+        {
             BlockNode expectedAst = new BlockNode();
             expectedAst.statements.add(new AssignmentNode() {{
                 lhs = new DeclarationNode() {{
@@ -60,24 +107,33 @@ public class ParserTest {
                 }};
             }});
 
-            Parser parser = new Parser();
-            AST ast = parser.parse(tokens);
-            Assertions.assertNotNull(ast);
-            CompareAST(expectedAst, ast);
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.IDENTIFIER, "customType"));
+                    add(new Token(Token.Type.IDENTIFIER, "customName89"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.LIT_NUMBER, "1"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.LIT_NUMBER, "998"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("customType customName89 = 1 + 998;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
         }
         {
-            ArrayList<Token> tokens = new ArrayList<Token>(){{
-                add(new Token(Token.Type.IDENTIFIER, "great_name99"));
-                add(new Token(Token.Type.OP_ASSIGN, "="));
-                add(new Token(Token.Type.LIT_NUMBER, "1"));
-                add(new Token(Token.Type.OP_PLUS, "+"));
-                add(new Token(Token.Type.OPEN_PAREN, "("));
-                add(new Token(Token.Type.LIT_NUMBER, "998"));
-                add(new Token(Token.Type.OP_DIVIDE, "/"));
-                add(new Token(Token.Type.LIT_NUMBER, "8"));
-                add(new Token(Token.Type.CLOSE_PAREN, ")"));
-                add(new Token(Token.Type.SEMICOLON, ";"));
-            }};
             BlockNode expectedAst = new BlockNode();
             expectedAst.statements.add(new AssignmentNode() {{
                 lhs = new IdentifierNode() {{
@@ -100,22 +156,36 @@ public class ParserTest {
                 }};
             }});
 
-            Parser parser = new Parser();
-            AST ast = parser.parse(tokens);
-            Assertions.assertNotNull(ast);
-            CompareAST(expectedAst, ast);
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.IDENTIFIER, "great_name99"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.LIT_NUMBER, "1"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.OPEN_PAREN, "("));
+                    add(new Token(Token.Type.LIT_NUMBER, "998"));
+                    add(new Token(Token.Type.OP_DIVIDE, "/"));
+                    add(new Token(Token.Type.LIT_NUMBER, "8"));
+                    add(new Token(Token.Type.CLOSE_PAREN, ")"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("great_name99 = 1 + (998 / 8);");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
         }
         {
-            ArrayList<Token> tokens = new ArrayList<Token>(){{
-                add(new Token(Token.Type.IDENTIFIER, "great_name99"));
-                add(new Token(Token.Type.OP_ASSIGN, "="));
-                add(new Token(Token.Type.IDENTIFIER, "test_identifier"));
-                add(new Token(Token.Type.OP_PLUS, "+"));
-                add(new Token(Token.Type.LIT_NUMBER, "998"));
-                add(new Token(Token.Type.OP_DIVIDE, "/"));
-                add(new Token(Token.Type.LIT_NUMBER, "8"));
-                add(new Token(Token.Type.SEMICOLON, ";"));
-            }};
             BlockNode expectedAst = new BlockNode();
             expectedAst.statements.add(new AssignmentNode() {{
                 lhs = new IdentifierNode() {{
@@ -138,29 +208,34 @@ public class ParserTest {
                 }};
             }});
 
-            Parser parser = new Parser();
-            AST ast = parser.parse(tokens);
-            Assertions.assertNotNull(ast);
-            CompareAST(expectedAst, ast);
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.IDENTIFIER, "great_name99"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.IDENTIFIER, "test_identifier"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.LIT_NUMBER, "998"));
+                    add(new Token(Token.Type.OP_DIVIDE, "/"));
+                    add(new Token(Token.Type.LIT_NUMBER, "8"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("great_name99 = test_identifier + 998 / 8;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
         }
         {
-            ArrayList<Token> tokens = new ArrayList<Token>(){{
-                add(new Token(Token.Type.IDENTIFIER, "testType"));
-                add(new Token(Token.Type.IDENTIFIER, "test"));
-                add(new Token(Token.Type.OP_ASSIGN, "="));
-                add(new Token(Token.Type.IDENTIFIER, "x"));
-                add(new Token(Token.Type.OP_PLUS, "+"));
-                add(new Token(Token.Type.LIT_NUMBER, "998"));
-                add(new Token(Token.Type.OP_DIVIDE, "/"));
-                add(new Token(Token.Type.OPEN_PAREN, "("));
-                add(new Token(Token.Type.LIT_NUMBER, "8"));
-                add(new Token(Token.Type.OP_MODULO, "%"));
-                add(new Token(Token.Type.LIT_NUMBER, "2"));
-                add(new Token(Token.Type.CLOSE_PAREN, ")"));
-                add(new Token(Token.Type.OP_PLUS, "+"));
-                add(new Token(Token.Type.IDENTIFIER, "y"));
-                add(new Token(Token.Type.SEMICOLON, ";"));
-            }};
             BlockNode expectedAst = new BlockNode();
             expectedAst.statements.add(new AssignmentNode() {{
                 lhs = new DeclarationNode() {{
@@ -196,12 +271,39 @@ public class ParserTest {
                 }};
             }});
 
-            Parser parser = new Parser();
-            AST ast = parser.parse(tokens);
-            Assertions.assertNotNull(ast);
-            System.out.println(expectedAst.toString(0));
-            System.out.println(ast.toString(0));
-            CompareAST(expectedAst, ast);
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.IDENTIFIER, "testType"));
+                    add(new Token(Token.Type.IDENTIFIER, "test"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.LIT_NUMBER, "998"));
+                    add(new Token(Token.Type.OP_DIVIDE, "/"));
+                    add(new Token(Token.Type.OPEN_PAREN, "("));
+                    add(new Token(Token.Type.LIT_NUMBER, "8"));
+                    add(new Token(Token.Type.OP_MODULO, "%"));
+                    add(new Token(Token.Type.LIT_NUMBER, "2"));
+                    add(new Token(Token.Type.CLOSE_PAREN, ")"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.IDENTIFIER, "y"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("testType test = x + 998 / (8 % 2) + y;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
         }
     }
 

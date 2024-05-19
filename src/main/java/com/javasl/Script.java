@@ -5,10 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
+import com.javasl.compiler.Compiler;
 import com.javasl.compiler.Parser;
 import com.javasl.compiler.Token;
 import com.javasl.compiler.Tokenizer;
 import com.javasl.compiler.ast.AST;
+import com.javasl.runtime.Interpreter;
+import com.javasl.runtime.Statement;
 
 public class Script {
     public Script() {}
@@ -35,7 +38,9 @@ public class Script {
             throw new IllegalArgumentException("Parser error: Failed to parse file " + path);
         }
 
-        // TODO: compile
+        // compile
+        Compiler compiler = new Compiler();
+        m_statements = compiler.compile(ast);
 
         m_ready = true;
     }
@@ -43,5 +48,12 @@ public class Script {
     public boolean isReady() {
         return m_ready;
     }
+
+    public void run() {
+        Interpreter interpreter = new Interpreter();
+        interpreter.execute(m_statements);
+    }
+
     private boolean m_ready = false;
+    private ArrayList<Statement> m_statements = new ArrayList<>();
 }
