@@ -338,8 +338,8 @@ public class Parser {
             throw new IllegalArgumentException("Unexpected '-'.");
         }
 
-        // literal
-        if (token.getTypeGroup() == Token.TypeGroup.LITERAL) {
+        // bool/literal
+        if (token.type == Token.Type.KW_TRUE || token.type == Token.Type.KW_FALSE || token.getTypeGroup() == Token.TypeGroup.LITERAL) {
             LiteralNode node = new LiteralNode();
             node.literal = token;
             return node;

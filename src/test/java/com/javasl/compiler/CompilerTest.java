@@ -48,6 +48,23 @@ public class CompilerTest {
             ArrayList<Statement> real = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));         
             CompareStatementLists(expected, real);
         }
+        {
+            String testStr = "bool x = true; bool y = 1; int32 z = x;";
+            ArrayList<Statement> expected = new ArrayList<Statement>(){{
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Bool(true))));
+                add(Statement.declareVariable(new Variable("x", new Bool())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(1))));
+                add(Statement.declareVariable(new Variable("y", new Bool())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                add(Statement.declareVariable(new Variable("z", new Int32())));
+                add(Statement.assignVariable(true, 0, false, 1));
+                add(Statement.clearStack(5));
+            }};
+            
+            ArrayList<Statement> real = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));  
+            CompareStatementLists(expected, real);
+        }
     }
 
     @Test public void testFunctions() {

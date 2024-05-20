@@ -305,6 +305,56 @@ public class ParserTest {
                 CompareAST(expectedAst, ast);
             }
         }
+        {
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_BOOL, "bool");
+                    identifier = new Token(Token.Type.IDENTIFIER, "test");
+                }};
+                rhs = new LiteralNode() {{
+                    literal = new Token(Token.Type.KW_TRUE, "true");
+                }};
+            }});
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_BOOL, "bool");
+                    identifier = new Token(Token.Type.IDENTIFIER, "test2");
+                }};
+                rhs = new LiteralNode() {{
+                    literal = new Token(Token.Type.KW_FALSE, "false");
+                }};
+            }});
+
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.T_BOOL, "bool"));
+                    add(new Token(Token.Type.IDENTIFIER, "test"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.KW_TRUE, "true"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                    add(new Token(Token.Type.T_BOOL, "bool"));
+                    add(new Token(Token.Type.IDENTIFIER, "test2"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.KW_FALSE, "false"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("bool test = true; bool test2 = false;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+        }
     }
 
     @Test public void testFunctions() {

@@ -5,17 +5,17 @@ A simple scripting language written in java.
 # Types
 ```
 Misc:
-    void
+    void, bool
 Scalar:
     int8, int16, int32, int64
     uint8, uint16, uint32, uint64
 ```
 
 # Operators
-```
-Arithmetic:
-    + - * / %
-```
+| Precedence | Operator |
+|:----------:|:--------:|
+|1|* / %|
+|2|+ -|
 
 # Grammar
 TODO: move IDENTIFIER IDENTIFIER from LHS to VAR_DECL

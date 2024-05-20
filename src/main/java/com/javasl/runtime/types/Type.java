@@ -40,11 +40,13 @@ public abstract class Type {
         put(Token.Type.T_UINT64, new Uint64());
         put(Token.Type.T_FLOAT,  null);
         put(Token.Type.T_DOUBLE, null);
-        put(Token.Type.T_BOOL,   null);
+        put(Token.Type.T_BOOL,   new Bool());
         put(Token.Type.T_STRING, null);
         put(Token.Type.T_CHAR,   null);
         put(Token.Type.LIT_NUMBER, new Int64());
         put(Token.Type.LIT_STRING, null);
         put(Token.Type.LIT_CHAR, null);
+        put(Token.Type.KW_TRUE, new Bool());
+        put(Token.Type.KW_FALSE, new Bool());
     }};
 }

@@ -89,6 +89,25 @@ public class InterpreterTest {
 
             compareStack(expected, interpreter.getStack());
         }
+        {
+            String test = "bool x = true; bool y = 10; int32 z = x + y;";
+            
+            ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
+            instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+            Interpreter interpreter = new Interpreter();
+            interpreter.execute(instr);
+
+            Stack<Variable> expected = new Stack<Variable>(){{
+                push(new Variable("0_COMPILER_TEMP", new Bool(true)));
+                push(new Variable("x", new Bool(true)));
+                push(new Variable("1_COMPILER_TEMP", new Int64(10)));
+                push(new Variable("y", new Bool(true)));
+                push(new Variable("2_COMPILER_TEMP", new Int64(2)));
+                push(new Variable("z", new Int32(2)));
+            }};
+
+            compareStack(expected, interpreter.getStack());
+        }
     }
     @Test public void testFunctions() {
         {

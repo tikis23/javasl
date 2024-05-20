@@ -30,7 +30,7 @@ public class Compiler {
         else if (ast instanceof ReturnNode) return compileReturnNode((ReturnNode) ast);
         else if (ast instanceof FunctionCallNode) return compileFunctionCallNode((FunctionCallNode) ast);
 
-        else throw new IllegalArgumentException("Unknown AST type");
+        else throw new IllegalArgumentException("Unknown AST type `" + ast.getClass().getName() + "`.");
     }
 
     private ArrayList<Statement> compileBlockNode(BlockNode ast) {
@@ -248,13 +248,35 @@ public class Compiler {
     private ArrayList<Statement> compileAssignmentNode(AssignmentNode ast) {
         ArrayList<Statement> ret = new ArrayList<>();
 
-        // TODO: if RHS is Identifier/Literal, then we can optimize by not creating a temp variable
+        // TODO: if RHS is Literal, then we can optimize by not creating a temp variable
 
         // compile rhs of assignment
-        ret.addAll(dispatchToCompile(ast.rhs));
-        int rhsIndex = m_variableStack.size() - 1;
-        boolean rhsRel = true;
+        int rhsIndex = 0;
+        boolean rhsRel = false;
+        if (ast.rhs instanceof IdentifierNode) {
+            IdentifierNode node = (IdentifierNode) ast.rhs;
+            Variable var = new Variable(node.identifier.textRepresentation, null);
+            // check if variable exists in function scope (params + locals)(relative)
+            if (m_inFunction) {
+                for (Variable v : m_functionVariables) {
+                    if (v.equals(var)) {
+                        rhsRel = true;
+                    }
+                }
+            }
+            // else check global scope (absolute)
+            // check if variable exists
+            if (!doesVariableExist(var)) {
+                throw new IllegalArgumentException("Variable does not exist in scope: " + var.name);
+            }
+            rhsIndex = getVariableStackLocation(var);
+        } else {
+            ret.addAll(dispatchToCompile(ast.rhs));
+            rhsIndex = m_variableStack.size() - 1;
+            rhsRel = true;
+        }
         Type rhsType = m_variableStack.get(rhsIndex).value.getTypeInstance();
+
 
         // lhs
         int lhsIndex = 0;
@@ -410,8 +432,8 @@ public class Compiler {
 
     private void checkIfTypesAreCompatible(Type lhs, Type rhs, Token.Type op) {
         // TODO: add more checks
-        if ((lhs instanceof UnsignedInt || lhs instanceof SignedInt) &&
-            (rhs instanceof UnsignedInt || rhs instanceof SignedInt)) {
+        if ((lhs instanceof UnsignedInt || lhs instanceof SignedInt || lhs instanceof Bool) &&
+            (rhs instanceof UnsignedInt || rhs instanceof SignedInt || rhs instanceof Bool)) {
             return;
         }
 
