@@ -18,13 +18,18 @@ public abstract class Type {
     public abstract Type op_modulo(Type other);
     
     // misc
+    public Type copy() {
+        Type val = getTypeInstance();
+        val.setValue(getValue());
+        return val;
+    }
     public abstract String toString();
     public abstract Type getTypeInstance();
     public static Type fromToken(Token token) {
         return types.get(token.type).getTypeInstance();
     }
     private static final HashMap<Token.Type, Type> types = new HashMap<Token.Type, Type>() {{
-        put(Token.Type.T_VOID,   null);
+        put(Token.Type.T_VOID,   new Void());
         put(Token.Type.T_INT8,   new Int8());
         put(Token.Type.T_INT16,  new Int16());
         put(Token.Type.T_INT32,  new Int32());

@@ -307,6 +307,211 @@ public class ParserTest {
         }
     }
 
+    @Test public void testFunctions() {
+        {
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new FunctionDefNode() {{
+                declaration = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_INT64, "int64");
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                paramDeclaration = new ParamDeclarationNode() {{}};
+                block = new BlockNode() {{
+                    statements.add(new AssignmentNode() {{
+                        lhs = new DeclarationNode() {{
+                            type = new Token(Token.Type.T_INT32, "int32");
+                            identifier = new Token(Token.Type.IDENTIFIER, "b");
+                        }};
+                        rhs = new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }};
+                    }});
+                    statements.add(new ReturnNode() {{
+                        retVal = new IdentifierNode() {{
+                            identifier = new Token(Token.Type.IDENTIFIER, "b");
+                        }};
+                    }});
+                }};
+            }});
+            expectedAst.statements.add(new FunctionCallNode() {{
+                funcName = new IdentifierNode() {{
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                params = new CallParamsNode() {{}};
+            }});
+
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    // func def
+                    add(new Token(Token.Type.T_INT64, "int64"));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OPEN_PAREN, "("));
+                    add(new Token(Token.Type.CLOSE_PAREN, ")"));
+                    add(new Token(Token.Type.OPEN_CURLY_BRACKET, "{"));
+                    add(new Token(Token.Type.T_INT32, "int32"));
+                    add(new Token(Token.Type.IDENTIFIER, "b"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.LIT_NUMBER, "1"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                    add(new Token(Token.Type.KW_RETURN, "return"));
+                    add(new Token(Token.Type.IDENTIFIER, "b"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                    add(new Token(Token.Type.CLOSE_CURLY_BRACKET, "}"));
+                    // func call
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OPEN_PAREN, "("));
+                    add(new Token(Token.Type.CLOSE_PAREN, ")"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("int64 x() { int32 b = 1; return b; } x();");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+        }
+        {
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new FunctionDefNode() {{
+                declaration = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_INT64, "int64");
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                paramDeclaration = new ParamDeclarationNode() {{
+                    declarations.add(new DeclarationNode() {{
+                        type = new Token(Token.Type.T_INT16, "int16");
+                        identifier = new Token(Token.Type.IDENTIFIER, "param1");
+                    }});
+                    declarations.add(new DeclarationNode() {{
+                        type = new Token(Token.Type.T_INT32, "int32");
+                        identifier = new Token(Token.Type.IDENTIFIER, "param2");
+                    }});
+                }};
+                block = new BlockNode() {{
+                    statements.add(new AssignmentNode() {{
+                        lhs = new DeclarationNode() {{
+                            type = new Token(Token.Type.T_INT32, "int32");
+                            identifier = new Token(Token.Type.IDENTIFIER, "b");
+                        }};
+                        rhs = new BinaryOpNode() {{
+                            operator = new Token(Token.Type.OP_PLUS, "+");
+                            lhs = new IdentifierNode() {{
+                                identifier = new Token(Token.Type.IDENTIFIER, "param1");
+                            }};
+                            rhs = new IdentifierNode() {{
+                                identifier = new Token(Token.Type.IDENTIFIER, "param2");
+                            }};
+                        }};
+                    }});
+                    statements.add(new ReturnNode() {{
+                        retVal = new BinaryOpNode() {{
+                            operator = new Token(Token.Type.OP_PLUS, "+");
+                            lhs = new IdentifierNode() {{
+                                identifier = new Token(Token.Type.IDENTIFIER, "b");
+                            }};
+                            rhs = new IdentifierNode() {{
+                                identifier = new Token(Token.Type.IDENTIFIER, "param2");
+                            }};
+                        }};
+                    }});
+                }};
+            }});
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_INT64, "int64");
+                    identifier = new Token(Token.Type.IDENTIFIER, "result");
+                }};
+                rhs = new FunctionCallNode() {{
+                    funcName = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    params = new CallParamsNode() {{
+                        params.add(new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }});
+                        params.add(new BinaryOpNode() {{
+                            operator = new Token(Token.Type.OP_PLUS, "+");
+                            lhs = new LiteralNode() {{
+                                literal = new Token(Token.Type.LIT_NUMBER, "2");
+                            }};
+                            rhs = new LiteralNode() {{
+                                literal = new Token(Token.Type.LIT_NUMBER, "5");
+                            }};
+                        }});
+                    }};
+                }};
+            }});
+
+            // hardcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    // func def
+                    add(new Token(Token.Type.T_INT64, "int64"));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OPEN_PAREN, "("));
+                    add(new Token(Token.Type.T_INT16, "int16"));
+                    add(new Token(Token.Type.IDENTIFIER, "param1"));
+                    add(new Token(Token.Type.COMMA, ","));
+                    add(new Token(Token.Type.T_INT32, "int32"));
+                    add(new Token(Token.Type.IDENTIFIER, "param2"));
+                    add(new Token(Token.Type.CLOSE_PAREN, ")"));
+                    add(new Token(Token.Type.OPEN_CURLY_BRACKET, "{"));
+                    add(new Token(Token.Type.T_INT32, "int32"));
+                    add(new Token(Token.Type.IDENTIFIER, "b"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.IDENTIFIER, "param1"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.IDENTIFIER, "param2"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                    add(new Token(Token.Type.KW_RETURN, "return"));
+                    add(new Token(Token.Type.IDENTIFIER, "b"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.IDENTIFIER, "param2"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                    add(new Token(Token.Type.CLOSE_CURLY_BRACKET, "}"));
+                    // func call
+                    add(new Token(Token.Type.T_INT64, "int64"));
+                    add(new Token(Token.Type.IDENTIFIER, "result"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OPEN_PAREN, "("));
+                    add(new Token(Token.Type.LIT_NUMBER, "1"));
+                    add(new Token(Token.Type.COMMA, ","));
+                    add(new Token(Token.Type.LIT_NUMBER, "2"));
+                    add(new Token(Token.Type.OP_PLUS, "+"));
+                    add(new Token(Token.Type.LIT_NUMBER, "5"));
+                    add(new Token(Token.Type.CLOSE_PAREN, ")"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("int64 x(int16 param1, int32 param2)" + 
+                                                                " { int32 b = param1 + param2; return b + param2; }" +
+                                                                "int64 result = x(1, 2 + 5);");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+        }
+    }
+
     private void CompareAST(AST expected, AST actual) {
         if (expected instanceof BlockNode) {
             Assertions.assertEquals(BlockNode.class, actual.getClass());
@@ -350,6 +555,40 @@ public class ParserTest {
             Assertions.assertEquals(expectedBinaryOp.operator.textRepresentation, actualBinaryOp.operator.textRepresentation);
             CompareAST(expectedBinaryOp.lhs, actualBinaryOp.lhs);
             CompareAST(expectedBinaryOp.rhs, actualBinaryOp.rhs);
+        } else if (expected instanceof ParamDeclarationNode) {
+            Assertions.assertEquals(ParamDeclarationNode.class, actual.getClass());
+            ParamDeclarationNode expectedParamDeclaration = (ParamDeclarationNode) expected;
+            ParamDeclarationNode actualParamDeclaration = (ParamDeclarationNode) actual;
+            Assertions.assertEquals(expectedParamDeclaration.declarations.size(), actualParamDeclaration.declarations.size());
+            for (int i = 0; i < expectedParamDeclaration.declarations.size(); i++) {
+                CompareAST(expectedParamDeclaration.declarations.get(i), actualParamDeclaration.declarations.get(i));
+            }
+        } else if (expected instanceof FunctionDefNode) {
+            Assertions.assertEquals(FunctionDefNode.class, actual.getClass());
+            FunctionDefNode expectedFunctionDef = (FunctionDefNode) expected;
+            FunctionDefNode actualFunctionDef = (FunctionDefNode) actual;
+            CompareAST(expectedFunctionDef.declaration, actualFunctionDef.declaration);
+            CompareAST(expectedFunctionDef.paramDeclaration, actualFunctionDef.paramDeclaration);
+            CompareAST(expectedFunctionDef.block, actualFunctionDef.block);
+        } else if (expected instanceof ReturnNode) {
+            Assertions.assertEquals(ReturnNode.class, actual.getClass());
+            ReturnNode expectedReturn = (ReturnNode) expected;
+            ReturnNode actualReturn = (ReturnNode) actual;
+            CompareAST(expectedReturn.retVal, actualReturn.retVal);
+        } else if (expected instanceof CallParamsNode) {
+            Assertions.assertEquals(CallParamsNode.class, actual.getClass());
+            CallParamsNode expectedCallParams = (CallParamsNode) expected;
+            CallParamsNode actualCallParams = (CallParamsNode) actual;
+            Assertions.assertEquals(expectedCallParams.params.size(), actualCallParams.params.size());
+            for (int i = 0; i < expectedCallParams.params.size(); i++) {
+                CompareAST(expectedCallParams.params.get(i), actualCallParams.params.get(i));
+            }
+        } else if (expected instanceof FunctionCallNode) {
+            Assertions.assertEquals(FunctionCallNode.class, actual.getClass());
+            FunctionCallNode expectedFunctionCall = (FunctionCallNode) expected;
+            FunctionCallNode actualFunctionCall = (FunctionCallNode) actual;
+            CompareAST(expectedFunctionCall.funcName, actualFunctionCall.funcName);
+            CompareAST(expectedFunctionCall.params, actualFunctionCall.params);
         } else {
             Assertions.fail("Unknown AST type");
         }

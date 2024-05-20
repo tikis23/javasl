@@ -11,6 +11,10 @@ public class Variable {
         this.value = value;
     }
 
+    public Variable copy() {
+        return new Variable(name, value.copy());
+    }
+
     public String toString() {
         return name + "-" + value.toString();
     }

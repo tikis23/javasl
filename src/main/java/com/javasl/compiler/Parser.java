@@ -22,7 +22,13 @@ public class Parser {
         try {
             return parseBlock();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Parser error: " + e.getMessage());
+            String localTokens = "";
+            if (m_index >= m_tokens.size()) m_index = m_tokens.size() - 1;
+            for (int i = 5; i >= 0; i--) {
+                if (m_index - i < 0) continue;
+                localTokens += m_tokens.get(m_index - i).textRepresentation + " ";
+            }
+            throw new IllegalArgumentException("Parser error `" + localTokens + "`: " + e.getMessage(), e);
         }
     }
 
@@ -47,7 +53,7 @@ public class Parser {
     private void consumeSemicolon() {
         Token next = next();
         if (next == null || next.type != Token.Type.SEMICOLON) {
-            throw new RuntimeException("expected semicolon.");
+            throw new IllegalArgumentException("expected semicolon.");
         }
     }
 
@@ -68,7 +74,7 @@ public class Parser {
         }
         Token close = next();
         if (close == null || close.type != Token.Type.CLOSE_CURLY_BRACKET) {
-            throw new RuntimeException("expected '}' after block.");
+            throw new IllegalArgumentException("expected '}' after block.");
         }
         return node;
     }
@@ -87,6 +93,22 @@ public class Parser {
         if (node != null) {
             return node;
         }
+
+        // function definition
+        restoreBackup(backup);
+        node = parseFunctionDefinition();
+        if (node != null) {
+            return node;
+        }
+
+        // function call
+        restoreBackup(backup);
+        node = parseFunctionCall();
+        if (node != null) {
+            consumeSemicolon();
+            return node;
+        }
+
         // assignment
         restoreBackup(backup);
         node = parseAssignment();
@@ -94,8 +116,66 @@ public class Parser {
             consumeSemicolon();
             return node;
         }
+
+        // return
+        restoreBackup(backup);
+        node = parseReturn();
+        if (node != null) {
+            consumeSemicolon();
+            return node;
+        }
+
         restoreBackup(backup);
         return null;
+    }
+    private AST parseReturn() {
+        int backup = backup();
+        Token ret = next();
+        if (ret == null || ret.type != Token.Type.KW_RETURN) {
+            restoreBackup(backup);
+            return null;
+        }
+        AST expression = parseExpression();
+        ReturnNode node = new ReturnNode();
+        node.retVal = expression;
+        return node;
+    }
+    private AST parseFunctionDefinition() {
+        int backup = backup();
+
+        // var decl
+        AST decl = parseVarDecl();
+        if (decl == null) {
+            restoreBackup(backup);
+            return null;
+        }
+
+        // check if next token is '('
+        Token openParen = next();
+        if (openParen == null || openParen.type != Token.Type.OPEN_PAREN) {
+            restoreBackup(backup);
+            return null;
+        }
+
+        // parse parameters
+        ParamDeclarationNode params = (ParamDeclarationNode)parseParamDeclaration();
+        // check if next token is ')'
+        Token closeParen = next();
+        if (closeParen == null || closeParen.type != Token.Type.CLOSE_PAREN) {
+            throw new IllegalArgumentException("expected ')' after parameters.");
+        }
+
+        // parse block
+        BlockNode block = (BlockNode)parseBlock();
+        if (block == null) {
+            throw new IllegalArgumentException("expected block after function definition.");
+        }
+
+        FunctionDefNode node = new FunctionDefNode();
+        node.declaration = (DeclarationNode)decl;
+        node.paramDeclaration = params;
+        node.block = block;
+        return node;
     }
     private AST parseAssignment() {
         int backup = backup();
@@ -106,13 +186,11 @@ public class Parser {
         }
         Token op = next();
         if (op == null || op.type != Token.Type.OP_ASSIGN) {
-            restoreBackup(backup);
-            throw new RuntimeException("expected assignment operator.");
+            throw new IllegalArgumentException("expected assignment operator.");
         }
         AST rhs = parseRHS();
         if (rhs == null) {
-            restoreBackup(backup);
-            throw new RuntimeException("expected rhs of assignment.");
+            throw new IllegalArgumentException("expected rhs of assignment.");
         }
         AssignmentNode node = new AssignmentNode();
         node.lhs = lhs;
@@ -121,37 +199,52 @@ public class Parser {
     }
     private AST parseLHS() {
         int backup = backup();
-        Token token = next();
-        if (token == null) {
+
+        // format: type identifier
+        AST decl = parseVarDecl();
+        if (decl != null) {
+            return decl;
+        }
+
+        // check if identifier1 is valid
+        restoreBackup(backup);
+        Token iden1 = next();
+        if (iden1 == null || iden1.type != Token.Type.IDENTIFIER) {
             restoreBackup(backup);
             return null;
         }
-        Token token2 = peek(0);
-        if (token.type == Token.Type.IDENTIFIER) { // token could be a name or user type at this point
-            if (token2 != null && token2.type == Token.Type.IDENTIFIER) { // token is type, token2 is name
-                DeclarationNode node = new DeclarationNode();
-                node.type = token;
-                node.identifier = token2;
-                next(); // consume token2
-                return node;
-            } else { // token is name
-                IdentifierNode node = new IdentifierNode();
-                node.identifier = token;
-                return node;
-            }
-        } else if (token.getTypeGroup() == Token.TypeGroup.TYPE) { // token is a type
-            if (token2 == null || token2.type != Token.Type.IDENTIFIER) {
-                throw new RuntimeException("expected identifier after type.");
-            } else { // token2 is a name
-                DeclarationNode node = new DeclarationNode();
-                node.type = token;
-                node.identifier = token2;
-                next(); // consume token2
-                return node;
-            }
+        Token iden2 = peek(0);
+        // format: identifier
+        if (iden2 == null || iden2.type != Token.Type.IDENTIFIER) {
+            IdentifierNode node = new IdentifierNode();
+            node.identifier = iden1;
+            return node;
         }
-        restoreBackup(backup);
-        return null;
+        // format: identifier1 identifier2
+        next(); // consume iden2
+        DeclarationNode node = new DeclarationNode();
+        node.type = iden1;
+        node.identifier = iden2;
+        return node;
+    }
+    private AST parseVarDecl() {
+        int backup = backup();
+
+        Token type = next();
+        Token identifier = next();
+        if (type == null || identifier == null) {
+            restoreBackup(backup);
+            return null;
+        }
+        if (type.getTypeGroup() != Token.TypeGroup.TYPE || identifier.type != Token.Type.IDENTIFIER) {
+            restoreBackup(backup);
+            return null;
+        }
+
+        DeclarationNode node = new DeclarationNode();
+        node.type = type;
+        node.identifier = identifier;
+        return node;
     }
     private AST parseRHS() {
         int backup = backup();
@@ -175,7 +268,7 @@ public class Parser {
                 next(); // consume operator
                 AST term2 = parseTerm();
                 if (term2 == null) {
-                    throw new RuntimeException("expected term after operator.");
+                    throw new IllegalArgumentException("expected term after operator.");
                 }
                 BinaryOpNode node = new BinaryOpNode();
                 node.lhs = term;
@@ -203,7 +296,7 @@ public class Parser {
                 next(); // consume operator
                 AST factor2 = parseFactor();
                 if (factor2 == null) {
-                    throw new RuntimeException("expected factor after operator.");
+                    throw new IllegalArgumentException("expected factor after operator.");
                 }
                 BinaryOpNode node = new BinaryOpNode();
                 node.lhs = factor;
@@ -218,13 +311,20 @@ public class Parser {
     }
     private AST parseFactor() {
         int backup = backup();
-        Token token = next();
-        if (token == null) {
-            throw new RuntimeException("Unexpected EOF.");
+
+        // function call
+        AST callNode = parseFunctionCall();
+        if (callNode != null) {
+            return callNode;
         }
 
-        // TODO: function calls
+        // tokens
+        Token token = next();
+        if (token == null) {
+            throw new IllegalArgumentException("Unexpected EOF.");
+        }
 
+        // TODO: make all expressions negatable with prefix -
         // literal number with prefix -
         if (token.type == Token.Type.OP_MINUS) {
             Token next = peek(0);
@@ -235,7 +335,7 @@ public class Parser {
                 node.literal = next;
                 return node;
             }
-            throw new RuntimeException("Unexpected '-'.");
+            throw new IllegalArgumentException("Unexpected '-'.");
         }
 
         // literal
@@ -255,17 +355,93 @@ public class Parser {
         if (token.type == Token.Type.OPEN_PAREN) {
             AST expression = parseExpression();
             if (expression == null) {
-                throw new RuntimeException("expected expression after '('.");
+                throw new IllegalArgumentException("expected expression after '('.");
             }
             Token closeParen = next();
             if (closeParen == null || closeParen.type != Token.Type.CLOSE_PAREN) {
-                throw new RuntimeException("expected ')' after expression.");
+                throw new IllegalArgumentException("expected ')' after expression.");
             }
             return expression;
         }
 
         restoreBackup(backup);
         return null;
+    }
+    private AST parseFunctionCall() {
+        int backup = backup();
+        Token iden = next();
+        if (iden == null || iden.type != Token.Type.IDENTIFIER) {
+            restoreBackup(backup);
+            return null;
+        }
+        Token openParen = next();
+        if (openParen == null || openParen.type != Token.Type.OPEN_PAREN) {
+            restoreBackup(backup);
+            return null;
+        }
+
+        CallParamsNode params = (CallParamsNode)parseCallParams();
+        FunctionCallNode node = new FunctionCallNode();
+        node.funcName = new IdentifierNode();
+        node.funcName.identifier = iden;
+        node.params = params;
+
+        Token closeParen = next();
+        if (closeParen == null || closeParen.type != Token.Type.CLOSE_PAREN) {
+            throw new IllegalArgumentException("expected ')' after function call parameters.");
+        }
+
+        return node;
+    }
+    private AST parseCallParams() {
+        int backup = backup();
+        CallParamsNode params = new CallParamsNode();
+        AST expression = parseExpression();
+        if (expression == null) {
+            restoreBackup(backup);
+            return params;
+        }
+        params.params.add(expression);
+
+        while (true) {
+            Token comma = peek(0);
+            if (comma == null || comma.type != Token.Type.COMMA) {
+                break;
+            }
+            next(); // consume comma
+            expression = parseExpression();
+            if (expression == null) {
+                throw new IllegalArgumentException("expected expression after comma.");
+            }
+            params.params.add(expression);
+        }
+        
+
+        return params;
+    }
+    private AST parseParamDeclaration() {
+        int backup = backup();
+        ParamDeclarationNode params = new ParamDeclarationNode();
+        DeclarationNode decl = (DeclarationNode)parseVarDecl();
+        if (decl == null) {
+            restoreBackup(backup);
+            return params;
+        }
+        params.declarations.add(decl);
+        while (true) {
+            Token comma = peek(0);
+            if (comma == null || comma.type != Token.Type.COMMA) {
+                break;
+            }
+            next(); // consume comma
+            decl = (DeclarationNode)parseVarDecl();
+            if (decl == null) {
+                throw new IllegalArgumentException("expected parameter declaration after comma.");
+            }
+            params.declarations.add(decl);
+        }
+
+        return params;
     }
 
     private ArrayList<Token> m_tokens;
