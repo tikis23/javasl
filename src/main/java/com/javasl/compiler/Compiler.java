@@ -904,8 +904,9 @@ public class Compiler {
 
     private void checkIfTypesAreCompatible(Type_T lhs, Type_T rhs, Token.Type op) {
         // TODO: add more checks
-        if ((lhs instanceof Any_T || lhs instanceof UnsignedInt_T || lhs instanceof SignedInt_T || lhs instanceof Bool_T) &&
-            (rhs instanceof UnsignedInt_T || rhs instanceof SignedInt_T || rhs instanceof Bool_T)) {
+        if ((lhs instanceof Any_T || 
+             lhs instanceof Float_T || lhs instanceof UnsignedInt_T || lhs instanceof SignedInt_T || lhs instanceof Bool_T) &&
+            (rhs instanceof Float_T || rhs instanceof UnsignedInt_T || rhs instanceof SignedInt_T || rhs instanceof Bool_T)) {
             return;
         }
         if (lhs instanceof Any_T && rhs instanceof Any_T) {

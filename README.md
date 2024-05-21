@@ -60,7 +60,7 @@ TERM[x] => TERM[x-1] {OP_PREC[x][0] TERM[x-1] | OP_PREC[x][1] TERM[x-1] | ...}
 TERM[0] => FACTOR {OP_PREC[0][0] FACTOR | OP_PREC[0][1] FACTOR | ...}
 FACTOR => FUNC_CALL | LITERAL | IDENTIFIER | "(" EXPR ")"
 LITERAL => LITERAL_NUMBER | LITERAL_STRING | LITERAL_CHAR
-LITERAL_NUMBER => digit {digit} | "-" digit {digit}
+LITERAL_NUMBER => digit {digit} | "-" digit {digit} | digit.{digit} | "-" digit.{digit} | {digit}.digit | "-" {digit}.digit
 LITERAL_STRING => """ {character} """
 LITERAL_CHAR => "'" character "'"
 ASSIGNMENT => LHS "=" RHS

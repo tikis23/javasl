@@ -93,6 +93,55 @@ public class ParserTest {
             BlockNode expectedAst = new BlockNode();
             expectedAst.statements.add(new AssignmentNode() {{
                 lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_FLOAT, "float");
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                rhs = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_MULTIPLY, "*");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "-99.0");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "-1.9875");
+                    }};
+                }};
+            }});
+
+            // harcoded
+            {
+                ArrayList<Token> tokens = new ArrayList<Token>(){{
+                    add(new Token(Token.Type.T_FLOAT, "float"));
+                    add(new Token(Token.Type.IDENTIFIER, "x"));
+                    add(new Token(Token.Type.OP_ASSIGN, "="));
+                    add(new Token(Token.Type.OP_MINUS, "-"));
+                    add(new Token(Token.Type.LIT_NUMBER, "99"));
+                    add(new Token(Token.Type.DOT, "."));
+                    add(new Token(Token.Type.OP_MULTIPLY, "*"));
+                    add(new Token(Token.Type.OP_MINUS, "-"));
+                    add(new Token(Token.Type.LIT_NUMBER, "1"));
+                    add(new Token(Token.Type.DOT, "."));
+                    add(new Token(Token.Type.LIT_NUMBER, "9875"));
+                    add(new Token(Token.Type.SEMICOLON, ";"));
+                }};
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+            // using tokenizer
+            {
+                Tokenizer tokenizer = new Tokenizer();
+                ArrayList<Token> tokens = tokenizer.tokenize("float x = -99. * -1.9875;");
+                Parser parser = new Parser();
+                AST ast = parser.parse(tokens);
+                Assertions.assertNotNull(ast);
+                CompareAST(expectedAst, ast);
+            }
+        }
+        {
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
                     type = new Token(Token.Type.IDENTIFIER, "customType");
                     identifier = new Token(Token.Type.IDENTIFIER, "customName89");
                 }};

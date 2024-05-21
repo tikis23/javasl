@@ -39,9 +39,14 @@ public abstract class Type_T {
     public abstract String toString();
     public abstract Type_T getTypeInstance();
     public static Type_T fromToken(Token token) {
-        Type_T t = types.get(token.type);
-        if (t == null) throw new IllegalArgumentException("Unsupported type: " + token.type + " " + token.textRepresentation);
-        return t.getTypeInstance();
+        if (token.type == Token.Type.LIT_NUMBER) {
+            if (token.textRepresentation.contains(".")) return new Double_T();
+            else return new Int64_T();
+        } else {
+            Type_T t = types.get(token.type);
+            if (t == null) throw new IllegalArgumentException("Unsupported type: " + token.type + " " + token.textRepresentation);
+            return t.getTypeInstance();
+        }
     }
     private static final HashMap<Token.Type, Type_T> types = new HashMap<Token.Type, Type_T>() {{
         put(Token.Type.T_VOID,   new Void_T());
@@ -53,12 +58,11 @@ public abstract class Type_T {
         put(Token.Type.T_UINT16, new Uint16_T());
         put(Token.Type.T_UINT32, new Uint32_T());
         put(Token.Type.T_UINT64, new Uint64_T());
-        put(Token.Type.T_FLOAT,  null);
-        put(Token.Type.T_DOUBLE, null);
+        put(Token.Type.T_FLOAT,  new Float_T());
+        put(Token.Type.T_DOUBLE, new Double_T());
         put(Token.Type.T_BOOL,   new Bool_T());
         put(Token.Type.T_STRING, null);
         put(Token.Type.T_CHAR,   null);
-        put(Token.Type.LIT_NUMBER, new Int64_T());
         put(Token.Type.LIT_STRING, null);
         put(Token.Type.LIT_CHAR, null);
         put(Token.Type.KW_TRUE, new Bool_T());

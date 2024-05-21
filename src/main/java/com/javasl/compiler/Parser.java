@@ -468,6 +468,14 @@ public class Parser {
             return callNode;
         }
 
+        // lit num
+        Token next = parseLiteralNumber();
+        if (next != null) {
+            LiteralNode node = new LiteralNode();
+            node.literal = next;
+            return node;
+        }
+
         // tokens
         Token token = next();
         if (token == null) {
@@ -477,9 +485,8 @@ public class Parser {
         // TODO: make all expressions negatable with prefix -
         // literal number with prefix -
         if (token.type == Token.Type.OP_MINUS) {
-            Token next = peek(0);
+            next = parseLiteralNumber();
             if (next != null && next.type == Token.Type.LIT_NUMBER) {
-                next(); // consume next
                 next.textRepresentation = "-" + next.textRepresentation;
                 LiteralNode node = new LiteralNode();
                 node.literal = next;
@@ -512,6 +519,43 @@ public class Parser {
                 throw new IllegalArgumentException("expected ')' after expression.");
             }
             return expression;
+        }
+
+        restoreBackup(backup);
+        return null;
+    }
+    private Token parseLiteralNumber() {
+        int backup = backup();
+        Token token = next();
+        if (token == null) {
+            restoreBackup(backup);
+            return null;
+        }
+
+        if (token.type == Token.Type.LIT_NUMBER) { // NUMBER
+            Token dot = peek(0);
+            if (dot == null || dot.type != Token.Type.DOT) { // NUMBER .
+                return token;
+            }
+            token.textRepresentation += ".";
+            next(); // consume dot
+            Token next = peek(0);
+            if (next == null || next.type != Token.Type.LIT_NUMBER) { // NUMBER . NUMBER
+                token.textRepresentation += "0";
+                return token;
+            }
+            token.textRepresentation += next.textRepresentation;
+            next(); // consume next
+            return token;
+        }
+        else if (token.type == Token.Type.DOT) { // .
+            Token next = peek(0);
+            if (next == null || next.type != Token.Type.LIT_NUMBER) { // . NUMBER
+                throw new IllegalArgumentException("expected number after '.'");
+            }
+            token.textRepresentation = "0." + next.textRepresentation;
+            next(); // consume next
+            return token;
         }
 
         restoreBackup(backup);

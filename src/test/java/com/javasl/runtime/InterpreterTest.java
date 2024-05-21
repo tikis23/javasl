@@ -30,6 +30,17 @@ public class InterpreterTest {
             compareStack(expected, interpreter.getStack());
         }
         {
+            String test = "double x = 10 / 2.5;";
+            ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
+            instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+            Interpreter interpreter = new Interpreter();
+            interpreter.execute(instr);
+
+            double resultX = (Double)interpreter.getStack().peek().value.getValue();
+            double expectedX = 10 / 2.5;
+            Assertions.assertEquals(expectedX, resultX);
+        }
+        {
             String test = "int32 x = 2 * 8;";
             test += "int16 y = x + 2 * -7;";
             test += "y = y / 2 + 2;";
