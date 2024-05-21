@@ -5,10 +5,12 @@ import com.javasl.runtime.types.Type_T;
 
 public class Main {
     public static void main(String[] args) {
-        String sourceString = "int32 i = 0; while (i < 10) { i = i + externalFunc(i); } print(i);";
+        String sourceString = "int32 i = 0; while (i < 10) {";
+        sourceString += "i = i + externalFunc(i);";
+        sourceString += "} print(i);";
         Script script = new Script();
-        script.addDefaultFunctionPrint();
-        script.addExternalFunction("externalFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
+        script.addDefaultFunctionPrint(false);
+        script.addExternalFunction("externalFunc", true, new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
             int p0 = Script.intParam(p[0]);
             return new Int32_T(p0 + 2);
         });
@@ -19,7 +21,10 @@ public class Main {
             e.printStackTrace();
         }
         if (script.isReady()) {
-            script.execute();
+            while (!script.isFinished()) {
+                System.out.println("Executing script until it yields ...");
+                script.execute();
+            }
         }
     }
 }

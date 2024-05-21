@@ -330,6 +330,7 @@ public interface Statement {
 
                 // return from function
                 state.ip = state.funcCalls.pop();
+                state.yield = funcDecl.yieldAfterReturn;
             }
             public String toString() {
                 return "externalFunctionCall " + funcDecl.name;

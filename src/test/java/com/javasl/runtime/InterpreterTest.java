@@ -25,7 +25,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
             Interpreter interpreter = new Interpreter();
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             compareStack(expected, interpreter.getStack());
         }
@@ -34,7 +35,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
             Interpreter interpreter = new Interpreter();
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             double resultX = (Double)interpreter.getStack().peek().value.getValue();
             double expectedX = 10 / 2.5;
@@ -69,7 +71,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
             Interpreter interpreter = new Interpreter();
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             compareStack(expected, interpreter.getStack());
         }
@@ -97,7 +100,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
             Interpreter interpreter = new Interpreter();
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             compareStack(expected, interpreter.getStack());
         }
@@ -107,7 +111,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
             Interpreter interpreter = new Interpreter();
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             Stack<Variable> expected = new Stack<Variable>(){{
                 push(new Variable("0_COMPILER_TEMP", new Bool_T(true)));
@@ -126,7 +131,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
             Interpreter interpreter = new Interpreter();
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             Stack<Variable> expected = new Stack<Variable>(){{
                 push(new Variable("0_COMPILER_TEMP", new Int64_T(-9)));
@@ -175,7 +181,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -183,7 +190,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
 
             }
@@ -235,7 +243,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -243,7 +252,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
 
             }
@@ -288,7 +298,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -296,7 +307,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -312,7 +324,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
             Interpreter interpreter = new Interpreter();
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             Variable result = interpreter.getStack().peek();
             Assertions.assertEquals("x", result.name);
@@ -324,7 +337,8 @@ public class InterpreterTest {
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
             Interpreter interpreter = new Interpreter();
             instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-            interpreter.execute(instr);
+            interpreter.setStatements(instr);
+            interpreter.execute();
 
             Variable result = interpreter.getStack().peek();
             Assertions.assertEquals("x", result.name);
@@ -373,7 +387,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -381,7 +396,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -435,7 +451,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -443,7 +460,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -495,7 +513,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -503,7 +522,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -559,7 +579,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -567,7 +588,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -619,7 +641,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -627,7 +650,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -679,7 +703,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -687,7 +712,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -702,7 +728,7 @@ public class InterpreterTest {
     @Test public void testExternalFunctions() {
         {
             Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", false, new Int32_T(), new Type_T[]{}, (Type_T[] p) -> {
                 return new Int32_T(999);
             });
             String testStr = "int32 x = 5; x = testFunc();";
@@ -728,7 +754,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -736,7 +763,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -748,7 +776,7 @@ public class InterpreterTest {
         }
         {
             Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", false, new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
                 int p0 = ((Number)(p[0].getValue())).intValue();
                 return new Int32_T(p0 + 5);
             });
@@ -776,7 +804,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -784,7 +813,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -796,11 +826,11 @@ public class InterpreterTest {
         }
         {
             Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", false, new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
                 int p0 = ((Number)(p[0].getValue())).intValue();
                 return new Int32_T(p0 + 5);
             });
-            Compiler.ExtFuncDecl funcDecl2 = compiler.addExternalFunction("testFunc2", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl2 = compiler.addExternalFunction("testFunc2", false, new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
                 int p0 = ((Number)(p[0].getValue())).intValue();
                 return new Int32_T(p0 + 10);
             });
@@ -835,7 +865,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -843,7 +874,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 
@@ -855,7 +887,7 @@ public class InterpreterTest {
         }
         {
           Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("externalFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("externalFunc", false, new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
                 int p0 = Script.intParam(p[0]);
                 return new Int32_T(p0 + 2);
             });
@@ -898,7 +930,8 @@ public class InterpreterTest {
             {
                 Interpreter interpreter = new Interpreter();
                 instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr);
+                interpreter.setStatements(instr);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
             // from compiler
@@ -906,7 +939,8 @@ public class InterpreterTest {
                 ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
                 Interpreter interpreter = new Interpreter();
                 instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
-                interpreter.execute(instr2);
+                interpreter.setStatements(instr2);
+                interpreter.execute();
                 results.add(interpreter.getStack()); 
             }
 

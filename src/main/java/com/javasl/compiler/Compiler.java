@@ -1013,6 +1013,7 @@ public class Compiler {
 
     // external functions
     public static class ExtFuncDecl {
+        public boolean yieldAfterReturn;
         public String name;
         public Type_T retType;
         public ArrayList<Variable> params;
@@ -1022,8 +1023,9 @@ public class Compiler {
         public Ret execute(Type_T ...params);
     }
     // return value for testing purposes only
-    public ExtFuncDecl addExternalFunction(String name, Type_T retType, Type_T[] params, ExternalFunction<? extends Type_T> function) {
+    public ExtFuncDecl addExternalFunction(String name, boolean yieldAfterReturn, Type_T retType, Type_T[] params, ExternalFunction<? extends Type_T> function) {
         ExtFuncDecl decl = new ExtFuncDecl();
+        decl.yieldAfterReturn = yieldAfterReturn;
         decl.name = name;
         decl.retType = retType;
         decl.function = function;

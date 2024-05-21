@@ -423,7 +423,7 @@ public class CompilerTest {
   @Test public void testExternalFunctions() {
         {
             Compiler compiler = new Compiler();
-            compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{}, (Type_T[] p) -> {
+            compiler.addExternalFunction("testFunc", false, new Int32_T(), new Type_T[]{}, (Type_T[] p) -> {
                 return new Int32_T(999);
             });
             String testStr = "int32 x = 5; x = testFunc();";
@@ -456,7 +456,7 @@ public class CompilerTest {
         }
         {
             Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", false, new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
                 int p0 = ((Number)(p[0].getValue())).intValue();
                 return new Int32_T(p0 + 5);
             });
@@ -484,11 +484,11 @@ public class CompilerTest {
         }
         {
             Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", false, new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
                 int p0 = ((Number)(p[0].getValue())).intValue();
                 return new Int32_T(p0 + 5);
             });
-            Compiler.ExtFuncDecl funcDecl2 = compiler.addExternalFunction("testFunc2", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+            Compiler.ExtFuncDecl funcDecl2 = compiler.addExternalFunction("testFunc2", false, new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
                 int p0 = ((Number)(p[0].getValue())).intValue();
                 return new Int32_T(p0 + 10);
             });
@@ -523,7 +523,7 @@ public class CompilerTest {
         }
         {
             Compiler compiler = new Compiler();
-            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("externalFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("externalFunc", false, new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
                 int p0 = Script.intParam(p[0]);
                 return new Int32_T(p0 * 2);
             });
