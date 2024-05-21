@@ -125,8 +125,157 @@ public class Parser {
             return node;
         }
 
+        // if
+        restoreBackup(backup);
+        node = parseIf();
+        if (node != null) {
+            return node;
+        }
+
+        // while
+        restoreBackup(backup);
+        node = parseWhile();
+        if (node != null) {
+            return node;
+        }
+
+        // for
+        restoreBackup(backup);
+        node = parseFor();
+        if (node != null) {
+            return node;
+        }
+
+        // break
+        restoreBackup(backup);
+        Token breakToken = next();
+        if (breakToken != null && breakToken.type == Token.Type.KW_BREAK) {
+            consumeSemicolon();
+            return new BreakNode();
+        }
+
+        // continue
+        restoreBackup(backup);
+        Token continueToken = next();
+        if (continueToken != null && continueToken.type == Token.Type.KW_CONTINUE) {
+            consumeSemicolon();
+            return new ContinueNode();
+        }
+
         restoreBackup(backup);
         return null;
+    }
+    private AST parseFor() {
+        int backup = backup();
+        Token forToken = next();
+        if (forToken == null || forToken.type != Token.Type.KW_FOR) {
+            restoreBackup(backup);
+            return null;
+        }
+        Token openParen = next();
+        if (openParen == null || openParen.type != Token.Type.OPEN_PAREN) {
+            throw new IllegalArgumentException("expected '(' after for.");
+        }
+        AST init = parseAssignment();
+        if (init == null) {
+            init = parseExpression();
+        }
+        Token semicolon1 = next();
+        if (semicolon1 == null || semicolon1.type != Token.Type.SEMICOLON) {
+            throw new IllegalArgumentException("expected ';' after for init.");
+        }
+        AST condition = parseExpression();
+        Token semicolon2 = next();
+        if (semicolon2 == null || semicolon2.type != Token.Type.SEMICOLON) {
+            throw new IllegalArgumentException("expected ';' after for condition.");
+        }
+        AST increment = parseAssignment();
+        if (increment == null) {
+            increment = parseExpression();
+        }
+        Token closeParen = next();
+        if (closeParen == null || closeParen.type != Token.Type.CLOSE_PAREN) {
+            throw new IllegalArgumentException("expected ')' after for increment.");
+        }
+        AST body = parseStatement();
+        if (body == null) {
+            throw new IllegalArgumentException("expected statement after for.");
+        }
+        
+        ForLoopNode node = new ForLoopNode();
+        node.init = init;
+        node.condition = condition;
+        node.increment = increment;
+        node.body = body;
+        return node;
+    }
+    private AST parseIf() {
+        int backup = backup();
+        Token ifToken = next();
+        if (ifToken == null || ifToken.type != Token.Type.KW_IF) {
+            restoreBackup(backup);
+            return null;
+        }
+        Token openParen = next();
+        if (openParen == null || openParen.type != Token.Type.OPEN_PAREN) {
+            throw new IllegalArgumentException("expected '(' after if.");
+        }
+        AST expression = parseExpression();
+        if (expression == null) {
+            throw new IllegalArgumentException("expected expression inside if statement.");
+        }
+        Token closeParen = next();
+        if (closeParen == null || closeParen.type != Token.Type.CLOSE_PAREN) {
+            throw new IllegalArgumentException("expected ')' after if statement.");
+        }
+        AST statement = parseStatement();
+        if (statement == null) {
+            throw new IllegalArgumentException("expected statement after if statement.");
+        }
+        ConditionalNode node = new ConditionalNode();
+        node.condition = expression;
+        node.trueBody = statement;
+
+        Token elseToken = peek(0);
+        if (elseToken == null || elseToken.type != Token.Type.KW_ELSE) {
+            return node;
+        }
+        next(); // consume else
+        statement = parseStatement();
+        if (statement == null) {
+            throw new IllegalArgumentException("expected statement after else.");
+        }
+        node.falseBody = statement;
+
+        return node;
+    }
+    private AST parseWhile() {
+        int backup = backup();
+        Token whileToken = next();
+        if (whileToken == null || whileToken.type != Token.Type.KW_WHILE) {
+            restoreBackup(backup);
+            return null;
+        }
+        Token openParen = next();
+        if (openParen == null || openParen.type != Token.Type.OPEN_PAREN) {
+            throw new IllegalArgumentException("expected '(' after while.");
+        }
+        AST expression = parseExpression();
+        if (expression == null) {
+            throw new IllegalArgumentException("expected expression inside while statement.");
+        }
+        Token closeParen = next();
+        if (closeParen == null || closeParen.type != Token.Type.CLOSE_PAREN) {
+            throw new IllegalArgumentException("expected ')' after while statement.");
+        }
+        AST statement = parseStatement();
+        if (statement == null) {
+            throw new IllegalArgumentException("expected statement after while statement.");
+        }
+        WhileLoopNode node = new WhileLoopNode();
+        node.condition = expression;
+        node.body = statement;
+        return node;
     }
     private AST parseReturn() {
         int backup = backup();
@@ -257,46 +406,47 @@ public class Parser {
     }
     private AST parseExpression() {
         int backup = backup();
-        AST term = parseTerm();
+        AST term = parseTerm(m_opPrecedenceList.size() - 1);
         if (term == null) {
             restoreBackup(backup);
             return null;
         }
-        while (true) {
-            Token op = peek(0);
-            if (op != null && (op.type == Token.Type.OP_PLUS || op.type == Token.Type.OP_MINUS)) {
-                next(); // consume operator
-                AST term2 = parseTerm();
-                if (term2 == null) {
-                    throw new IllegalArgumentException("expected term after operator.");
-                }
-                BinaryOpNode node = new BinaryOpNode();
-                node.lhs = term;
-                node.rhs = term2;
-                node.operator = op;
-                term = node;
-            } else {
-                break;
-            }
-        }
-
         return term;
     }
-    private AST parseTerm() {
+    private AST parseTerm(int precedence) {
         int backup = backup();
-        AST factor = parseFactor();
+        AST factor = null;
+        if (precedence > 0) {
+            factor = parseTerm(precedence - 1);
+        } else {
+            factor = parseFactor();
+        }
         if (factor == null) {
             restoreBackup(backup);
             return null;
         }
         while (true) {
             Token op = peek(0);
-            if (op != null && (op.type == Token.Type.OP_MULTIPLY || op.type == Token.Type.OP_DIVIDE ||
-                op.type == Token.Type.OP_MODULO)) {
+            if (op == null) {
+                break;
+            }
+            boolean opFound = false;
+            for (Token.Type type : m_opPrecedenceList.get(precedence)) {
+                if (op.type == type) {
+                    opFound = true;
+                    break;
+                }
+            }
+            if (opFound) {
                 next(); // consume operator
-                AST factor2 = parseFactor();
+                AST factor2 = null;
+                if (precedence > 0) {
+                    factor2 = parseTerm(precedence - 1);
+                } else {
+                    factor2 = parseFactor();
+                }
                 if (factor2 == null) {
-                    throw new IllegalArgumentException("expected factor after operator.");
+                    throw new IllegalArgumentException("expected term after operator.");
                 }
                 BinaryOpNode node = new BinaryOpNode();
                 node.lhs = factor;
@@ -446,4 +596,44 @@ public class Parser {
 
     private ArrayList<Token> m_tokens;
     private int m_index;
+    private static final ArrayList<ArrayList<Token.Type>> m_opPrecedenceList = new ArrayList<ArrayList<Token.Type>>() {{
+        add(new ArrayList<Token.Type>() {{ 
+            add(Token.Type.OP_MULTIPLY); 
+            add(Token.Type.OP_DIVIDE); 
+            add(Token.Type.OP_MODULO); 
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_PLUS);
+            add(Token.Type.OP_MINUS);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_SHIFT_LEFT);
+            add(Token.Type.OP_SHIFT_RIGHT);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_LESS);
+            add(Token.Type.OP_LESS_EQUAL);
+            add(Token.Type.OP_GREATER);
+            add(Token.Type.OP_GREATER_EQUAL);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_EQUAL);
+            add(Token.Type.OP_NOT_EQUAL);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_BITWISE_AND);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_BITWISE_XOR);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_BITWISE_OR);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_LOGIC_AND);
+        }});
+        add(new ArrayList<Token.Type>() {{
+            add(Token.Type.OP_LOGIC_OR);
+        }});
+    }};
 }

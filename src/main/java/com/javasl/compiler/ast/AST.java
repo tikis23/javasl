@@ -63,8 +63,37 @@ public abstract class AST {
             FunctionCallNode functionCall = (FunctionCallNode) this;
             res += "FunctionCall: " + functionCall.funcName.identifier.textRepresentation + "\n";
             res += functionCall.params.toString(depth + 1);
+        } else if (this instanceof ConditionalNode) {
+            ConditionalNode conditional = (ConditionalNode) this;
+            res += "Conditional:\n";
+            res += conditional.condition.toString(depth + 1);
+            res += "-TrueBody:\n";
+            res += conditional.trueBody.toString(depth + 2);
+            if (conditional.falseBody != null) {
+                res += "-FalseBody:\n";
+                res += conditional.falseBody.toString(depth + 2);
+            }
+        } else if (this instanceof WhileLoopNode) {
+            WhileLoopNode whileLoop = (WhileLoopNode) this;
+            res += "WhileLoop:\n";
+            res += whileLoop.condition.toString(depth + 1);
+            res += "-Body:\n";
+            res += whileLoop.body.toString(depth + 2);
+        } else if (this instanceof ForLoopNode) {
+            ForLoopNode forLoop = (ForLoopNode) this;
+            res += "ForLoop:\n";
+            if (forLoop.init != null) res += forLoop.init.toString(depth + 1);
+            if (forLoop.condition != null) res += forLoop.condition.toString(depth + 1);
+            if (forLoop.increment != null) res += forLoop.increment.toString(depth + 1);
+            res += "-Body:\n";
+            res += forLoop.body.toString(depth + 2);
+        
+        } else if (this instanceof BreakNode) {
+            res += "Break\n";
+        } else if (this instanceof ContinueNode) {
+            res += "Continue\n";
         } else {
-            res += ("Unknown");
+            res += "Unknown";
         }
         return res;
     }

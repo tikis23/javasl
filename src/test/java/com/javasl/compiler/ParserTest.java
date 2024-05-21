@@ -562,6 +562,211 @@ public class ParserTest {
         }
     }
 
+    @Test public void testBranching() {
+        {
+            String testStr = "if (15 < 76) { int64 x = 1; }";
+            testStr += "if (false) print(5); else { print(6);}";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new ConditionalNode() {{
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_LESS, "<");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "15");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "76");
+                    }};
+                }};
+                trueBody = new BlockNode() {{
+                    statements.add(new AssignmentNode() {{
+                        lhs = new DeclarationNode() {{
+                            type = new Token(Token.Type.T_INT64, "int64");
+                            identifier = new Token(Token.Type.IDENTIFIER, "x");
+                        }};
+                        rhs = new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }};
+                    }});
+                }};
+            }});
+            expectedAst.statements.add(new ConditionalNode() {{
+                condition = new LiteralNode() {{
+                    literal = new Token(Token.Type.KW_FALSE, "false");
+                }};
+                trueBody = new FunctionCallNode() {{
+                    funcName = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "print");
+                    }};
+                    params = new CallParamsNode() {{
+                        params.add(new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "5");
+                        }});
+                    }};
+                }};
+                falseBody = new BlockNode() {{
+                    statements.add(new FunctionCallNode() {{
+                        funcName = new IdentifierNode() {{
+                            identifier = new Token(Token.Type.IDENTIFIER, "print");
+                        }};
+                        params = new CallParamsNode() {{
+                            params.add(new LiteralNode() {{
+                                literal = new Token(Token.Type.LIT_NUMBER, "6");
+                            }});
+                        }};
+                    }});
+                }};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+    }
+    @Test public void testLoops() {
+        {
+            String testStr = "while (15 < 76) { int64 x = 1; break; continue; }";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new WhileLoopNode() {{
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_LESS, "<");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "15");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "76");
+                    }};
+                }};
+                body = new BlockNode() {{
+                    statements.add(new AssignmentNode() {{
+                        lhs = new DeclarationNode() {{
+                            type = new Token(Token.Type.T_INT64, "int64");
+                            identifier = new Token(Token.Type.IDENTIFIER, "x");
+                        }};
+                        rhs = new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }};
+                    }});
+                    statements.add(new BreakNode());
+                    statements.add(new ContinueNode());
+                }};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+        {
+            String testStr = "for (int32 x = 0; x < 5; x = x + 1) {}";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new ForLoopNode() {{
+                init = new AssignmentNode() {{
+                    lhs = new DeclarationNode() {{
+                        type = new Token(Token.Type.T_INT32, "int32");
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "0");
+                    }};
+                }};
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_LESS, "<");
+                    lhs = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "5");
+                    }};
+                }};
+                increment = new AssignmentNode() {{
+                    lhs = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new BinaryOpNode() {{
+                        operator = new Token(Token.Type.OP_PLUS, "+");
+                        lhs = new IdentifierNode() {{
+                            identifier = new Token(Token.Type.IDENTIFIER, "x");
+                        }};
+                        rhs = new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }};
+                    }};
+                }};
+                body = new BlockNode() {{}};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+        {
+            String testStr = "int32 x = 5; for (x = 0; 5 > 2;) {}";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_INT32, "int32");
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                rhs = new LiteralNode() {{
+                    literal = new Token(Token.Type.LIT_NUMBER, "5");
+                }};
+            }});
+            expectedAst.statements.add(new ForLoopNode() {{
+                init = new AssignmentNode() {{
+                    lhs = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "0");
+                    }};
+                }};
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_GREATER, ">");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "5");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "2");
+                    }};
+                }};
+                increment = null;
+                body = new BlockNode() {{}};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+        {
+            String testStr = "for (;;) {}";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new ForLoopNode() {{
+                init = null;
+                condition = null;
+                increment = null;
+                body = new BlockNode() {{}};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+    }
+
     private void CompareAST(AST expected, AST actual) {
         if (expected instanceof BlockNode) {
             Assertions.assertEquals(BlockNode.class, actual.getClass());
@@ -639,8 +844,39 @@ public class ParserTest {
             FunctionCallNode actualFunctionCall = (FunctionCallNode) actual;
             CompareAST(expectedFunctionCall.funcName, actualFunctionCall.funcName);
             CompareAST(expectedFunctionCall.params, actualFunctionCall.params);
+        } else if (expected instanceof ConditionalNode) {
+            Assertions.assertEquals(ConditionalNode.class, actual.getClass());
+            ConditionalNode expectedConditional = (ConditionalNode) expected;
+            ConditionalNode actualConditional = (ConditionalNode) actual;
+            CompareAST(expectedConditional.condition, actualConditional.condition);
+            CompareAST(expectedConditional.trueBody, actualConditional.trueBody);
+            Assertions.assertEquals(expectedConditional.falseBody == null, actualConditional.falseBody == null);
+            if (expectedConditional.falseBody != null) CompareAST(expectedConditional.falseBody, actualConditional.falseBody);
+        } else if (expected instanceof WhileLoopNode) {
+            Assertions.assertEquals(WhileLoopNode.class, actual.getClass());
+            WhileLoopNode expectedWhileLoop = (WhileLoopNode) expected;
+            WhileLoopNode actualWhileLoop = (WhileLoopNode) actual;
+            CompareAST(expectedWhileLoop.condition, actualWhileLoop.condition);
+            CompareAST(expectedWhileLoop.body, actualWhileLoop.body);
+        } else if (expected instanceof ForLoopNode) {
+            Assertions.assertEquals(ForLoopNode.class, actual.getClass());
+            ForLoopNode expectedForLoop = (ForLoopNode) expected;
+            ForLoopNode actualForLoop = (ForLoopNode) actual;
+            Assertions.assertEquals(expectedForLoop.init == null, actualForLoop.init == null);
+            Assertions.assertEquals(expectedForLoop.condition == null, actualForLoop.condition == null);
+            Assertions.assertEquals(expectedForLoop.increment == null, actualForLoop.increment == null);
+            if (expectedForLoop.init != null) CompareAST(expectedForLoop.init, actualForLoop.init);
+            if (expectedForLoop.condition != null) CompareAST(expectedForLoop.condition, actualForLoop.condition);
+            if (expectedForLoop.increment != null) CompareAST(expectedForLoop.increment, actualForLoop.increment);
+            CompareAST(expectedForLoop.body, actualForLoop.body);
+        } else if (expected instanceof BreakNode) {
+            Assertions.assertEquals(BreakNode.class, actual.getClass());
+        } else if (expected instanceof BreakNode) {
+            Assertions.assertEquals(BreakNode.class, actual.getClass());
+        } else if (expected instanceof ContinueNode) {
+            Assertions.assertEquals(ContinueNode.class, actual.getClass());
         } else {
-            Assertions.fail("Unknown AST type");
+            Assertions.fail("Unknown AST type " + expected.getClass().getName());
         }
     }
 }

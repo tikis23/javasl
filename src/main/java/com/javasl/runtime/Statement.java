@@ -1,6 +1,7 @@
 package com.javasl.runtime;
 
 import com.javasl.compiler.Token;
+import com.javasl.runtime.types.*;
 
 public interface Statement {
     public void execute(Interpreter.State state);
@@ -18,10 +19,9 @@ public interface Statement {
     }
     public static Statement binaryOp(Token.Type op, boolean result_rel, int result_sp, boolean left_rel, int left_sp,
                                                     boolean right_rel, int right_sp) {
-        // TODO: branches can be eliminated by returning a custom statement for each combination
-
         abstract class OperationOverload implements Statement {
             public void execute(Interpreter.State state) {
+                // TODO: branches can be eliminated by returning a custom statement for each combination
                 int result_loc = result_sp;
                 int left_loc = left_sp;
                 int right_loc = right_sp;
@@ -43,19 +43,7 @@ public interface Statement {
             public abstract void operation(Variable result, Variable left, Variable right);
         }
 
-        if (op == Token.Type.OP_PLUS) {
-            return new OperationOverload() {
-                public void operation(Variable result, Variable left, Variable right) {
-                    result.value = left.value.op_plus(right.value);
-                }
-            };
-        } else if (op == Token.Type.OP_MINUS) {
-            return new OperationOverload() {
-                public void operation(Variable result, Variable left, Variable right) {
-                    result.value = left.value.op_minus(right.value);
-                }
-            };
-        } else if (op == Token.Type.OP_MULTIPLY) {
+        if (op == Token.Type.OP_MULTIPLY) {
             return new OperationOverload() {
                 public void operation(Variable result, Variable left, Variable right) {
                     result.value = left.value.op_multiply(right.value);
@@ -71,6 +59,96 @@ public interface Statement {
             return new OperationOverload() {
                 public void operation(Variable result, Variable left, Variable right) {
                     result.value = left.value.op_modulo(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_PLUS) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_plus(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_MINUS) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_minus(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_SHIFT_LEFT) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_shift_left(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_SHIFT_RIGHT) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_shift_right(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_LESS) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_less(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_LESS_EQUAL) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_less_equal(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_GREATER) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_greater(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_GREATER_EQUAL) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_greater_equal(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_EQUAL) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_equal(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_NOT_EQUAL) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_not_equal(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_BITWISE_AND) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_bitwise_and(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_BITWISE_XOR) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_bitwise_xor(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_BITWISE_OR) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_bitwise_or(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_LOGIC_AND) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_logical_and(right.value);
+                }
+            };
+        } else if (op == Token.Type.OP_LOGIC_OR) {
+            return new OperationOverload() {
+                public void operation(Variable result, Variable left, Variable right) {
+                    result.value = left.value.op_logical_or(right.value);
                 }
             };
         } else {
@@ -132,6 +210,32 @@ public interface Statement {
             }
         };
     }
+    public static Statement breakLoop(int clearCount, int relJumpCount) {
+        return new Statement() {
+            public void execute(Interpreter.State state) {
+                for (int i = 0; i < clearCount; i++) {
+                    state.variables.pop();
+                }
+                state.ip += relJumpCount;
+            }
+            public String toString() {
+                return "breakLoop " + clearCount + " rel(" + relJumpCount + ")";
+            }
+        };
+    }
+    public static Statement continueLoop(int clearCount, int relJumpCount) {
+        return new Statement() {
+            public void execute(Interpreter.State state) {
+                for (int i = 0; i < clearCount; i++) {
+                    state.variables.pop();
+                }
+                state.ip += relJumpCount;
+            }
+            public String toString() {
+                return "continueLoop " + clearCount + " rel(" + relJumpCount + ")";
+            }
+        };
+    }
     public static Statement jumpRel(int offset) {
         return new Statement() {
             public void execute(Interpreter.State state) {
@@ -141,6 +245,34 @@ public interface Statement {
                 return "jumpRel rel(" + offset + ")";
             }
         };
+    }
+    public static Statement jumpRelConditional(boolean invert, int offset, boolean source_rel, int source_sp) {
+        Uint8 zero = new Uint8(0);
+        if (source_rel) {
+            return new Statement() {
+                public void execute(Interpreter.State state) {
+                    Variable source = state.variables.get(state.variables.size() + source_sp - 1);
+                    if ((Long)source.value.op_not_equal(zero).getValue() == (invert ? 1 : 0)) {
+                        state.ip += offset;
+                    }
+                }
+                public String toString() {
+                    return "jumpRelCondition "+ invert +" rel(" + offset + ") " + "rel(" + source_sp + ")";
+                }
+            };
+        } else {
+            return new Statement() {
+                public void execute(Interpreter.State state) {
+                    Variable source = state.variables.get(source_sp);
+                    if ((Long)source.value.op_not_equal(zero).getValue() == (invert ? 1 : 0)) {
+                        state.ip += offset;
+                    }
+                }
+                public String toString() {
+                    return "jumpRelCondition "+ invert +" rel(" + offset + ") " + "abs(" + source_sp + ")";
+                }
+            };
+        }
     }
     public static Statement functionCall(int ip) {
         return new Statement() {

@@ -11,12 +11,25 @@ public abstract class Type {
     public abstract void setValue(Object value);
 
     // ops
-    public abstract Type op_plus(Type other);
-    public abstract Type op_minus(Type other);
     public abstract Type op_multiply(Type other);
     public abstract Type op_divide(Type other);
     public abstract Type op_modulo(Type other);
-    
+    public abstract Type op_plus(Type other);
+    public abstract Type op_minus(Type other);
+    public abstract Type op_shift_left(Type other);
+    public abstract Type op_shift_right(Type other);
+    public abstract Type op_less(Type other);
+    public abstract Type op_less_equal(Type other);
+    public abstract Type op_greater(Type other);
+    public abstract Type op_greater_equal(Type other);
+    public abstract Type op_equal(Type other);
+    public abstract Type op_not_equal(Type other);
+    public abstract Type op_bitwise_and(Type other);
+    public abstract Type op_bitwise_xor(Type other);
+    public abstract Type op_bitwise_or(Type other);
+    public abstract Type op_logical_and(Type other);
+    public abstract Type op_logical_or(Type other);
+
     // misc
     public Type copy() {
         Type val = getTypeInstance();

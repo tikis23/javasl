@@ -15,7 +15,9 @@ public class Compiler {
     public ArrayList<Statement> compile(AST ast) throws IllegalArgumentException {
 
         try {
-            return dispatchToCompile(ast);
+            ArrayList<Statement> statements = dispatchToCompile(ast);
+            backpatch(statements);
+            return statements;
         } catch (Exception e) {
             throw new IllegalArgumentException("Compiler error: " + e.getMessage(), e);
         }
@@ -29,6 +31,11 @@ public class Compiler {
         else if (ast instanceof FunctionDefNode) return compileFunctionDefinitionNode((FunctionDefNode) ast);
         else if (ast instanceof ReturnNode) return compileReturnNode((ReturnNode) ast);
         else if (ast instanceof FunctionCallNode) return compileFunctionCallNode((FunctionCallNode) ast);
+        else if (ast instanceof ConditionalNode) return compileConditionalNode((ConditionalNode) ast);
+        else if (ast instanceof WhileLoopNode) return compileWhileLoopNode((WhileLoopNode) ast);
+        else if (ast instanceof ForLoopNode) return compileForLoopNode((ForLoopNode) ast);
+        else if (ast instanceof BreakNode) return compileBreakNode((BreakNode) ast);
+        else if (ast instanceof ContinueNode) return compileContinueNode((ContinueNode) ast);
 
         else throw new IllegalArgumentException("Unknown AST type `" + ast.getClass().getName() + "`.");
     }
@@ -40,6 +47,421 @@ public class Compiler {
             ret.addAll(dispatchToCompile(statement));
         }
         ret.addAll(endScope());
+        return ret;
+    }
+    private ArrayList<Statement> compileBreakNode(BreakNode ast) {
+        ArrayList<Statement> ret = new ArrayList<>();
+        if (m_loopBackpatches.empty()) {
+            throw new IllegalArgumentException("Break statement outside of loop.");
+        }
+        LoopBackpatch loopBackpatch = m_loopBackpatches.peek();
+        loopBackpatch.backpatches.add(new Backpatch() {{
+            ip = m_functionIp;
+            node = ast;
+            stackClearCount = m_variableStack.size() - loopBackpatch.loopStackBreakStart;
+        }});
+        ret.add(Statement.breakLoop(0, 0));
+        m_functionIp++;
+        return ret;
+    }
+    private ArrayList<Statement> compileContinueNode(ContinueNode ast) {
+        ArrayList<Statement> ret = new ArrayList<>();
+        if (m_loopBackpatches.empty()) {
+            throw new IllegalArgumentException("Continue statement outside of loop.");
+        }
+        LoopBackpatch loopBackpatch = m_loopBackpatches.peek();
+        loopBackpatch.backpatches.add(new Backpatch() {{
+            ip = m_functionIp;
+            node = ast;
+            stackClearCount = m_variableStack.size() - loopBackpatch.loopStackContinueStart;
+        }});
+        ret.add(Statement.continueLoop(0, 0));
+        m_functionIp++;
+        return ret;
+    }
+    private ArrayList<Statement> compileForLoopNode(ForLoopNode ast) {
+        ArrayList<Statement> ret = new ArrayList<>();
+
+        LoopBackpatch loopBackpatch = new LoopBackpatch();
+        loopBackpatch.loopStackBreakStart = m_variableStack.size();
+        m_loopBackpatches.add(loopBackpatch);
+        
+        // compile init
+        int initPopCount = 0;
+        if (ast.init != null) {
+            int stackBefore = m_variableStack.size();
+            ret.addAll(dispatchToCompile(ast.init));
+            int stackAfter = m_variableStack.size();
+            initPopCount = stackAfter - stackBefore;
+        }
+        // compile condition
+        int conditionPopCount = 0;
+        boolean conditionRel = false;
+        int conditionIndex = 0;
+        ArrayList<Statement> condition = null;
+        if (ast.condition != null && ast.condition instanceof IdentifierNode) {
+            IdentifierNode node = (IdentifierNode) ast.condition;
+            Variable var = new Variable(node.identifier.textRepresentation, null);
+            // check if variable exists in function scope (params + locals)(relative)
+            for (Variable v : m_functionVariables) {
+                if (v.equals(var)) {
+                    conditionRel = true;
+                }
+            }
+            // else check global scope (absolute)
+            // check if variable exists
+            if (!doesVariableExist(var)) {
+                throw new IllegalArgumentException("Variable does not exist in scope: " + var.name);
+            }
+            conditionIndex = getVariableStackLocation(var);
+            condition = new ArrayList<>();
+        } else if (ast.condition != null) {
+            int stackBefore = m_variableStack.size();
+            condition = dispatchToCompile(ast.condition);
+            int stackAfter = m_variableStack.size();
+            conditionPopCount = stackAfter - stackBefore;
+            conditionRel = true;
+            conditionIndex = m_variableStack.size() - 1;
+            if (condition == null || condition.size() == 0) {
+                condition = null;
+                conditionPopCount = 0;
+            }
+        }
+        if (conditionRel) {
+            conditionIndex = conditionIndex - m_variableStack.size() + 1;
+        }
+        if (condition != null) {
+            m_functionIp++; // for the conditional jump instruction
+        }
+        loopBackpatch.loopStackContinueStart = m_variableStack.size();
+
+        // compile body
+        ArrayList<Statement> body = new ArrayList<>();
+        int bodyPopCount = 0;
+        {
+            int stackBefore = m_variableStack.size();
+            body = dispatchToCompile(ast.body);
+            int stackAfter = m_variableStack.size();
+            bodyPopCount = stackAfter - stackBefore;
+
+            // rename variables in body to avoid conflicts in increment
+            ArrayList<Variable> renamedVars = new ArrayList<>();
+            for (int i = 0; i < bodyPopCount; i++) {
+                Variable var = m_variableStack.peek();
+                removeVariableFromScope(var);
+                var.name = "0_INC_DUMMY";
+                renamedVars.add(var);
+            }
+            for (int i = renamedVars.size() - 1; i >= 0; i--) {
+                addVariableToScope(renamedVars.get(i));
+            }
+        }
+
+        // create continue backpatches
+        for (Backpatch backpatch : loopBackpatch.backpatches) {
+            if (backpatch.node instanceof ContinueNode)
+                backpatch.targetIp = m_functionIp - 1;
+        }
+
+        // compile increment
+        int incrementPopCount = 0;
+        ArrayList<Statement> increment = null;
+        if (ast.increment != null) {
+            int stackBefore = m_variableStack.size();
+            increment = dispatchToCompile(ast.increment);
+            int stackAfter = m_variableStack.size();
+            incrementPopCount = stackAfter - stackBefore;
+        }
+        if (increment == null) {
+            increment = new ArrayList<>();
+        }
+
+        // remove renamed + increment + condition variables from compiler stack
+        for (int i = 0; i < bodyPopCount + incrementPopCount + conditionPopCount; i++) {
+            Variable var = m_variableStack.peek();
+            removeVariableFromScope(var);
+        }
+
+        // add clear to increment
+        if (incrementPopCount + bodyPopCount + conditionPopCount > 0) {
+            increment.add(Statement.clearStack(incrementPopCount + bodyPopCount + conditionPopCount));
+            m_functionIp++;
+        }
+
+        // add jump to condition
+        if (condition != null) {
+            condition.add(Statement.jumpRelConditional(false, body.size() + increment.size() + 1, conditionRel, conditionIndex));
+            // function IP increment is after compiling the condition
+        }
+        
+        // add condition to return
+        if (condition != null) {
+            if (conditionRel) {
+                conditionIndex = conditionIndex - m_variableStack.size() + 1;
+            }
+            ret.addAll(condition);
+        }
+        // add body to return
+        ret.addAll(body);
+        // add increment to return
+        ret.addAll(increment);
+        // add jump to return
+        ret.add(Statement.jumpRel(-(increment.size() + body.size() + (condition == null ? 0 : condition.size()) + 1)));
+        m_functionIp++;
+        // add init clear to return
+        if (initPopCount + conditionPopCount > 0) {
+            ret.add(Statement.clearStack(initPopCount + conditionPopCount));
+            m_functionIp++;
+        }
+        // clear init from compiler stack
+        for (int i = 0; i < initPopCount; i++) {
+            Variable var = m_variableStack.peek();
+            removeVariableFromScope(var);
+        }
+
+        // create break backpatches
+        for (Backpatch backpatch : loopBackpatch.backpatches) {
+            if (backpatch.node instanceof BreakNode)
+                backpatch.targetIp = m_functionIp - 1;
+        }
+
+        // put backpatches in array
+        for (Backpatch backpatch : loopBackpatch.backpatches) {
+            m_backpatches.add(backpatch);
+        }
+        m_loopBackpatches.pop();
+
+        return ret;
+    }
+    private ArrayList<Statement> compileWhileLoopNode(WhileLoopNode ast) {
+        ArrayList<Statement> ret = new ArrayList<>();
+
+        LoopBackpatch loopBackpatch = new LoopBackpatch();
+        loopBackpatch.loopStackBreakStart = m_variableStack.size();
+        loopBackpatch.loopStackContinueStart = m_variableStack.size();
+        m_loopBackpatches.add(loopBackpatch);
+
+        // compile condition
+        int conditionPopCount = 0;
+        boolean conditionRel = false;
+        int conditionIndex = 0;
+        ArrayList<Statement> condition = new ArrayList<>();
+        if (ast.condition instanceof IdentifierNode) {
+            IdentifierNode node = (IdentifierNode) ast.condition;
+            Variable var = new Variable(node.identifier.textRepresentation, null);
+            // check if variable exists in function scope (params + locals)(relative)
+            for (Variable v : m_functionVariables) {
+                if (v.equals(var)) {
+                    conditionRel = true;
+                }
+            }
+            // else check global scope (absolute)
+            // check if variable exists
+            if (!doesVariableExist(var)) {
+                throw new IllegalArgumentException("Variable does not exist in scope: " + var.name);
+            }
+            conditionIndex = getVariableStackLocation(var);
+        } else {
+            int stackBeforeCondition = m_variableStack.size();
+            condition = dispatchToCompile(ast.condition);
+            if (condition == null || condition.size() == 0) {
+                throw new IllegalArgumentException("While statement needs a condition.");
+            }
+            conditionRel = true;
+            conditionIndex = m_variableStack.size() - 1;
+            int stackAfterContidion = m_variableStack.size();
+            conditionPopCount = stackAfterContidion - stackBeforeCondition;
+        }
+        // increment IP for condition to fix break/continue
+        if (conditionPopCount > 0) {
+            m_functionIp++;
+        }
+        m_functionIp+=2;
+
+        // compile body
+        ArrayList<Statement> body;
+        {
+            int stackBeforeCondition = m_variableStack.size();
+            body = dispatchToCompile(ast.body);
+            if (body.size() == 0) {
+                throw new IllegalArgumentException("While statement needs a body.");
+            }
+            int stackAfterContidion = m_variableStack.size();
+            int bodyPopCount = stackAfterContidion - stackBeforeCondition;
+
+            // clear stack
+            int clearCount = bodyPopCount + conditionPopCount;
+            if (clearCount > 0) {
+                body.add(Statement.clearStack(clearCount));
+                m_functionIp++;
+                // clear compiler stack
+                for (int i = 0; i < bodyPopCount; i++) {
+                    Variable var = m_variableStack.peek();
+                    removeVariableFromScope(var);
+                }
+            }
+        }
+
+        // create condition jumps
+        if (conditionRel) {
+            conditionIndex = conditionIndex - m_variableStack.size() + 1;
+        }
+        condition.add(Statement.jumpRelConditional(true, conditionPopCount == 0 ? 1 : 2, conditionRel, conditionIndex));
+        // IP increment is after compiling the condition
+        if (conditionPopCount > 0) {
+            condition.add(Statement.clearStack(conditionPopCount));
+            // IP increment is after compiling the condition
+            m_functionIp++;
+        }
+        condition.add(Statement.jumpRel(body.size() + 1));
+        // IP increment is after compiling the condition
+
+        // clear compiler stack from condition
+        for (int i = 0; i < conditionPopCount; i++) {
+            Variable var = m_variableStack.peek();
+            removeVariableFromScope(var);
+        }
+
+        // create body jump
+        body.add(Statement.jumpRel(-(body.size() + condition.size() + 1)));
+        m_functionIp++;
+
+        // add lists to return
+        ret.addAll(condition);
+        ret.addAll(body);
+
+        // backpatch breaks
+        for (Backpatch backpatch : loopBackpatch.backpatches) {
+            if (backpatch.node instanceof BreakNode) {
+                backpatch.targetIp = m_functionIp - 2;
+            }
+        }
+        // backpatch continues
+        for (Backpatch backpatch : loopBackpatch.backpatches) {
+            if (backpatch.node instanceof ContinueNode) {
+                backpatch.targetIp = m_functionIp - 3;
+            }
+        }
+
+        // put backpatches in array
+        for (Backpatch backpatch : loopBackpatch.backpatches) {
+            m_backpatches.add(backpatch);
+        }
+        m_loopBackpatches.pop();
+
+        return ret;
+    }
+    private ArrayList<Statement> compileConditionalNode(ConditionalNode ast) {
+        ArrayList<Statement> ret = new ArrayList<>();
+
+        // compile condition
+        int conditionPopCount = 0;
+        boolean conditionRel = false;
+        int conditionIndex = 0;
+        if (ast.condition instanceof IdentifierNode) {
+            IdentifierNode node = (IdentifierNode) ast.condition;
+            Variable var = new Variable(node.identifier.textRepresentation, null);
+            // check if variable exists in function scope (params + locals)(relative)
+            for (Variable v : m_functionVariables) {
+                if (v.equals(var)) {
+                    conditionRel = true;
+                }
+            }
+            // else check global scope (absolute)
+            // check if variable exists
+            if (!doesVariableExist(var)) {
+                throw new IllegalArgumentException("Variable does not exist in scope: " + var.name);
+            }
+            conditionIndex = getVariableStackLocation(var);
+        } else {
+            int stackBeforeCondition = m_variableStack.size();
+            ArrayList<Statement> condition = dispatchToCompile(ast.condition);
+            if (condition == null || condition.size() == 0) {
+                throw new IllegalArgumentException("If statement needs a condition.");
+            }
+            ret.addAll(condition);
+            int stackAfterContidion = m_variableStack.size();
+            conditionRel = true;
+            conditionIndex = m_variableStack.size() - 1;
+            conditionPopCount = stackAfterContidion - stackBeforeCondition;
+        }
+        m_functionIp++; // for the conditional jump instruction
+        if (conditionRel) {
+            conditionIndex = conditionIndex - m_variableStack.size() + 1;
+        }
+
+        // compile true body
+        ArrayList<Statement> trueBody;
+        {
+            int stackBeforeCondition = m_variableStack.size();
+            trueBody = dispatchToCompile(ast.trueBody);
+            if (trueBody.size() == 0) {
+                throw new IllegalArgumentException("If statement needs a true-branch body.");
+            }
+            int stackAfterContidion = m_variableStack.size();
+            int trueBodyPopCount = stackAfterContidion - stackBeforeCondition;
+
+            // clear stack
+            int clearCount = trueBodyPopCount + conditionPopCount;
+            if (clearCount > 0) {
+                trueBody.add(Statement.clearStack(clearCount));
+                m_functionIp++;
+                // clear compiler stack
+                for (int i = 0; i < trueBodyPopCount; i++) {
+                    Variable var = m_variableStack.peek();
+                    removeVariableFromScope(var);
+                }
+            }
+        }
+
+        // compile false body
+        ArrayList<Statement> falseBody = null;
+        int falseClearCount = conditionPopCount;
+        if (ast.falseBody != null) {
+            int stackBeforeCondition = m_variableStack.size();
+            falseBody = dispatchToCompile(ast.falseBody);
+            if (falseBody.size() == 0) {
+                throw new IllegalArgumentException("If-else statement needs a false-branch body.");
+            }
+            int stackAfterContidion = m_variableStack.size();
+            int falseBodyPopCount = stackAfterContidion - stackBeforeCondition;
+
+            falseClearCount = falseBodyPopCount + conditionPopCount;
+            // clear compiler stack
+            for (int i = 0; i < falseBodyPopCount; i++) {
+                Variable var = m_variableStack.peek();
+                removeVariableFromScope(var);
+            }
+        }
+
+        if (falseClearCount > 0) {
+            if (falseBody == null) {
+                falseBody = new ArrayList<>();
+            }
+            falseBody.add(Statement.clearStack(falseClearCount));
+            m_functionIp++;
+        }
+
+        // clear compiler stack from condition
+        for (int i = 0; i < conditionPopCount; i++) {
+            Variable var = m_variableStack.peek();
+            removeVariableFromScope(var);
+        }
+
+        // create jump instructions
+        if (falseBody != null) {
+            trueBody.add(Statement.jumpRel(falseBody.size()));
+            m_functionIp++;
+        }
+        ret.add(Statement.jumpRelConditional(false, trueBody.size(), conditionRel, conditionIndex));
+        // IP increment is after compiling the condition
+
+        // add bodies to return
+        ret.addAll(trueBody);
+        if (falseBody != null) {
+            ret.addAll(falseBody);
+        }
+
         return ret;
     }
     private ArrayList<Statement> compileFunctionCallNode(FunctionCallNode ast) {
@@ -503,4 +925,35 @@ public class Compiler {
     private HashSet<Variable> m_functionVariables = new HashSet<>();
     private int m_functionIp = 0;
     private boolean m_inFunction = false;
+    
+    // backpatching
+    private void backpatch(ArrayList<Statement> statements) {
+        for (Backpatch backpatch : m_backpatches) {
+            int relIp = backpatch.targetIp - backpatch.ip;
+            Statement fixed = null;
+            if (backpatch.node instanceof BreakNode) {
+                fixed = Statement.breakLoop(backpatch.stackClearCount, relIp);
+            } else if (backpatch.node instanceof ContinueNode) {
+                fixed = Statement.continueLoop(backpatch.stackClearCount, relIp);
+            }
+            if (fixed != null) {
+                statements.set(backpatch.ip, fixed);
+            } else {
+                throw new IllegalArgumentException("Unknown type for backpatching `" + backpatch.node.getClass().getName() + "`.");
+            }
+        }
+    }
+    private static class Backpatch {
+        public int ip;
+        public int targetIp;
+        public int stackClearCount;
+        AST node;
+    }
+    private static class LoopBackpatch {
+        ArrayList<Backpatch> backpatches = new ArrayList<>();
+        int loopStackBreakStart;
+        int loopStackContinueStart;
+    }
+    private ArrayList<Backpatch> m_backpatches = new ArrayList<>();
+    private Stack<LoopBackpatch> m_loopBackpatches = new Stack<>();
 }
