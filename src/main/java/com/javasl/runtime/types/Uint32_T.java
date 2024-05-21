@@ -1,10 +1,10 @@
 package com.javasl.runtime.types;
 
-public class Int32 extends SignedInt<Integer> {
-    public Int32() {
+public class Uint32_T extends UnsignedInt_T<Integer> {
+    public Uint32_T() {
         super((int) 0);
     }
-    public Int32(long value) {
+    public Uint32_T(long value) {
         super((int)value);
     }
     
@@ -14,10 +14,10 @@ public class Int32 extends SignedInt<Integer> {
     }
 
     // misc
-    public Type getTypeInstance() {
-        return new Int32();
+    public Type_T getTypeInstance() {
+        return new Uint32_T();
     }
     public String toString() {
-        return "int32(" + getValue() + ")";
+        return "uint32(" + Integer.toUnsignedString((Integer)getValue()) + ")";
     }
 }

@@ -2,10 +2,10 @@ package com.javasl.runtime;
 
 import java.util.ArrayList;
 
-import com.javasl.runtime.types.Type;
+import com.javasl.runtime.types.Type_T;
 
 public class FunctionVariable extends Variable {
-    public FunctionVariable(String name, Type retType, ArrayList<Variable> params, int ip) {
+    public FunctionVariable(String name, Type_T retType, ArrayList<Variable> params, int ip) {
         super(name, retType);
         this.params = params;
         this.ip = ip;

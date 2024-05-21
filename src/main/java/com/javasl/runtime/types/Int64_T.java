@@ -1,10 +1,10 @@
 package com.javasl.runtime.types;
 
-public class Int64 extends SignedInt<Long> {
-    public Int64() {
+public class Int64_T extends SignedInt_T<Long> {
+    public Int64_T() {
         super((long) 0);
     }
-    public Int64(long value) {
+    public Int64_T(long value) {
         super(value);
     }
     
@@ -14,8 +14,8 @@ public class Int64 extends SignedInt<Long> {
     }
 
     // misc
-    public Type getTypeInstance() {
-        return new Int64();
+    public Type_T getTypeInstance() {
+        return new Int64_T();
     }
     public String toString() {
         return "int64(" + getValue() + ")";

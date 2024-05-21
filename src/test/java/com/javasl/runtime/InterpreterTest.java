@@ -6,6 +6,7 @@ import java.util.Stack;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.javasl.Script;
 import com.javasl.compiler.Compiler;
 import com.javasl.compiler.Parser;
 import com.javasl.compiler.Token;
@@ -17,8 +18,8 @@ public class InterpreterTest {
         {
             String test = "int64 x = 5;";
             Stack<Variable> expected = new Stack<Variable>(){{
-                push(new Variable("0_COMPILER_TEMP", new Int64(5)));
-                push(new Variable("x", new Int64(5)));
+                push(new Variable("0_COMPILER_TEMP", new Int64_T(5)));
+                push(new Variable("x", new Int64_T(5)));
             }};
             
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
@@ -34,24 +35,24 @@ public class InterpreterTest {
             test += "y = y / 2 + 2;";
             test += "int32 z = (x + 3) % 3;";
             Stack<Variable> expected = new Stack<Variable>(){{
-                push(new Variable("0_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("1_COMPILER_TEMP", new Int64(8)));
-                push(new Variable("2_COMPILER_TEMP", new Int64(16)));
-                push(new Variable("x", new Int32(16)));
-                push(new Variable("3_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("4_COMPILER_TEMP", new Int64(-7)));
-                push(new Variable("5_COMPILER_TEMP", new Int64(-14)));
-                push(new Variable("6_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("y", new Int16(3)));
-                push(new Variable("7_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("8_COMPILER_TEMP", new Int64(1)));
-                push(new Variable("9_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("10_COMPILER_TEMP", new Int64(3)));
-                push(new Variable("11_COMPILER_TEMP", new Int64(3)));
-                push(new Variable("12_COMPILER_TEMP", new Int64(19)));
-                push(new Variable("13_COMPILER_TEMP", new Int64(3)));
-                push(new Variable("14_COMPILER_TEMP", new Int64(1)));
-                push(new Variable("z", new Int32(1)));
+                push(new Variable("0_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("1_COMPILER_TEMP", new Int64_T(8)));
+                push(new Variable("2_COMPILER_TEMP", new Int64_T(16)));
+                push(new Variable("x", new Int32_T(16)));
+                push(new Variable("3_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("4_COMPILER_TEMP", new Int64_T(-7)));
+                push(new Variable("5_COMPILER_TEMP", new Int64_T(-14)));
+                push(new Variable("6_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("y", new Int16_T(3)));
+                push(new Variable("7_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("8_COMPILER_TEMP", new Int64_T(1)));
+                push(new Variable("9_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("10_COMPILER_TEMP", new Int64_T(3)));
+                push(new Variable("11_COMPILER_TEMP", new Int64_T(3)));
+                push(new Variable("12_COMPILER_TEMP", new Int64_T(19)));
+                push(new Variable("13_COMPILER_TEMP", new Int64_T(3)));
+                push(new Variable("14_COMPILER_TEMP", new Int64_T(1)));
+                push(new Variable("z", new Int32_T(1)));
             }};
             
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
@@ -67,19 +68,19 @@ public class InterpreterTest {
             test += "uint16 a = -5 - -10;";
             test += "uint8 underflow = -1;";
             Stack<Variable> expected = new Stack<Variable>(){{
-                push(new Variable("0_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("1_COMPILER_TEMP", new Int64(8)));
-                push(new Variable("2_COMPILER_TEMP", new Int64(16)));
-                push(new Variable("x", new Uint32(16)));
-                push(new Variable("3_COMPILER_TEMP", new Int64(20)));
-                push(new Variable("4_COMPILER_TEMP", new Uint64(320)));
-                push(new Variable("t", new Uint8(64)));
-                push(new Variable("5_COMPILER_TEMP", new Int64(-5)));
-                push(new Variable("6_COMPILER_TEMP", new Int64(-10)));
-                push(new Variable("7_COMPILER_TEMP", new Int64(5)));
-                push(new Variable("a", new Uint16(5)));
-                push(new Variable("8_COMPILER_TEMP", new Int64(-1)));
-                push(new Variable("underflow", new Uint8(255)));
+                push(new Variable("0_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("1_COMPILER_TEMP", new Int64_T(8)));
+                push(new Variable("2_COMPILER_TEMP", new Int64_T(16)));
+                push(new Variable("x", new Uint32_T(16)));
+                push(new Variable("3_COMPILER_TEMP", new Int64_T(20)));
+                push(new Variable("4_COMPILER_TEMP", new Uint64_T(320)));
+                push(new Variable("t", new Uint8_T(64)));
+                push(new Variable("5_COMPILER_TEMP", new Int64_T(-5)));
+                push(new Variable("6_COMPILER_TEMP", new Int64_T(-10)));
+                push(new Variable("7_COMPILER_TEMP", new Int64_T(5)));
+                push(new Variable("a", new Uint16_T(5)));
+                push(new Variable("8_COMPILER_TEMP", new Int64_T(-1)));
+                push(new Variable("underflow", new Uint8_T(255)));
             }};
             
             ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(test)));
@@ -98,12 +99,12 @@ public class InterpreterTest {
             interpreter.execute(instr);
 
             Stack<Variable> expected = new Stack<Variable>(){{
-                push(new Variable("0_COMPILER_TEMP", new Bool(true)));
-                push(new Variable("x", new Bool(true)));
-                push(new Variable("1_COMPILER_TEMP", new Int64(10)));
-                push(new Variable("y", new Bool(true)));
-                push(new Variable("2_COMPILER_TEMP", new Int64(2)));
-                push(new Variable("z", new Int32(2)));
+                push(new Variable("0_COMPILER_TEMP", new Bool_T(true)));
+                push(new Variable("x", new Bool_T(true)));
+                push(new Variable("1_COMPILER_TEMP", new Int64_T(10)));
+                push(new Variable("y", new Bool_T(true)));
+                push(new Variable("2_COMPILER_TEMP", new Int64_T(2)));
+                push(new Variable("z", new Int32_T(2)));
             }};
 
             compareStack(expected, interpreter.getStack());
@@ -117,12 +118,12 @@ public class InterpreterTest {
             interpreter.execute(instr);
 
             Stack<Variable> expected = new Stack<Variable>(){{
-                push(new Variable("0_COMPILER_TEMP", new Int64(-9)));
-                push(new Variable("x", new Int32(-9)));
-                push(new Variable("1_COMPILER_TEMP", new Int64(99)));
-                push(new Variable("y", new Int32(99)));
-                push(new Variable("2_COMPILER_TEMP", new Bool(true)));
-                push(new Variable("z", new Bool(true)));
+                push(new Variable("0_COMPILER_TEMP", new Int64_T(-9)));
+                push(new Variable("x", new Int32_T(-9)));
+                push(new Variable("1_COMPILER_TEMP", new Int64_T(99)));
+                push(new Variable("y", new Int32_T(99)));
+                push(new Variable("2_COMPILER_TEMP", new Bool_T(true)));
+                push(new Variable("z", new Bool_T(true)));
             }};
 
             compareStack(expected, interpreter.getStack());
@@ -133,26 +134,26 @@ public class InterpreterTest {
 
             String testStr = "int32 foo(int32 PARAM1) { int32 x = PARAM1 + 5; return x; } int32 result = foo(5);";
             ArrayList<Variable> fooParams = new ArrayList<Variable>() {{
-                add(new Variable("PARAM1", new Int32()));
+                add(new Variable("PARAM1", new Int32_T()));
             }};
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // define function
-                add(Statement.declareVariable(new FunctionVariable("foo", new Int32(), fooParams, 1)));
+                add(Statement.declareVariable(new FunctionVariable("foo", new Int32_T(), fooParams, 1)));
                 add(Statement.jumpRel(8));
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(5))));
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, true, -2, true, -1));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // return x
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 add(Statement.functionReturn(true, 4 + 1 - 1)); // local + params - return
 
                 // function call
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64(5))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(5))));
                 add(Statement.functionCall(1));
-                add(Statement.declareVariable(new Variable("result", new Int32())));
+                add(Statement.declareVariable(new Variable("result", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
 
                 add(Statement.clearStack(3));
@@ -179,7 +180,7 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("result", result.name);
-                Assertions.assertEquals(new Int32(5+5).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(5+5).getValue(), result.value.getValue());
             }
         }
         {
@@ -187,32 +188,32 @@ public class InterpreterTest {
             testStr += "int32 foo(int32 PARAM1, int32 PARAM2) { int32 x = PARAM1 + value; return x + PARAM2; }";
             testStr += "int32 result = foo(2, 3);";
             ArrayList<Variable> fooParams = new ArrayList<Variable>() {{
-                add(new Variable("PARAM1", new Int32()));
-                add(new Variable("PARAM2", new Int32()));
+                add(new Variable("PARAM1", new Int32_T()));
+                add(new Variable("PARAM2", new Int32_T()));
             }};
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // define var
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(5))));
-                add(Statement.declareVariable(new Variable("value", new Int64())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.declareVariable(new Variable("value", new Int64_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // define function
-                add(Statement.declareVariable(new FunctionVariable("foo", new Int32(), fooParams, 4)));
+                add(Statement.declareVariable(new FunctionVariable("foo", new Int32_T(), fooParams, 4)));
                 add(Statement.jumpRel(7));
 
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, true, -2, false, 1));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // return x
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, true, -1, true, -3));
                 add(Statement.functionReturn(true, 3 + 2 - 1)); // local + params - return
 
                 // function call
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64(2))));
-                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(3))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(2))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(3))));
                 add(Statement.functionCall(4));
-                add(Statement.declareVariable(new Variable("result", new Int32())));
+                add(Statement.declareVariable(new Variable("result", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
 
                 add(Statement.clearStack(5));
@@ -239,7 +240,7 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("result", result.name);
-                Assertions.assertEquals(new Int32(2+5+3).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(2+5+3).getValue(), result.value.getValue());
             }
         }
     }
@@ -249,21 +250,21 @@ public class InterpreterTest {
             String testStr = "int32 x = 1; if (x > 0) x = -1; else x = 1;";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare x
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // if condition
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T())));
                 add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 1, true, -1));
                 add(Statement.jumpRelConditional(false, 4, true, 0));
                 // true body
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64(-1))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(-1))));
                 add(Statement.assignVariable(false, 1, true, 0));
                 add(Statement.clearStack(3));
                 add(Statement.jumpRel(3));
                 // else body
-                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(1))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
                 add(Statement.assignVariable(false, 1, true, 0));
                 add(Statement.clearStack(3));
 
@@ -291,7 +292,7 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("x", result.name);
-                Assertions.assertEquals(new Int32(-1).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(-1).getValue(), result.value.getValue());
             }
         }
         {
@@ -304,7 +305,7 @@ public class InterpreterTest {
 
             Variable result = interpreter.getStack().peek();
             Assertions.assertEquals("x", result.name);
-            Assertions.assertEquals(new Int32(-1).getValue(), result.value.getValue());
+            Assertions.assertEquals(new Int32_T(-1).getValue(), result.value.getValue());
         }
         {
             String testStr = "int32 x = 0; if (x) x = -1; else x = 1;";
@@ -316,7 +317,7 @@ public class InterpreterTest {
 
             Variable result = interpreter.getStack().peek();
             Assertions.assertEquals("x", result.name);
-            Assertions.assertEquals(new Int32(1).getValue(), result.value.getValue());
+            Assertions.assertEquals(new Int32_T(1).getValue(), result.value.getValue());
         }
     }
     @Test public void testLoops() {
@@ -324,27 +325,27 @@ public class InterpreterTest {
             String testStr = "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; y = y + 1;}";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare x
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(10))));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // declare y
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("y", new Int32())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // while condition
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 1, true, -1));
                 add(Statement.jumpRelConditional(true, 2, true, 0));
                 add(Statement.clearStack(2)); // condition
                 add(Statement.jumpRel(11));
                 // body
-                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 1, true, -1));
                 add(Statement.assignVariable(false, 1, true, 0));
-                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
                 add(Statement.assignVariable(false, 3, true, 0));
                 add(Statement.clearStack(4)); // scope
@@ -376,36 +377,36 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("y", result.name);
-                Assertions.assertEquals(new Int32(10).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(10).getValue(), result.value.getValue());
             }
         }
         {
             String testStr = "int32 y = 0; for (int32 x = 10; x > 0; x = x - 1) {y = y + 1; continue;}";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare y
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("y", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
 
                 // for init
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(10))));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // for condition
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 3, true, -1));
                 add(Statement.jumpRelConditional(false, 6+5+1, true, 0)); // body + increment + 1
                 // body
-                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
                 add(Statement.assignVariable(false, 1, true, 0));
                 add(Statement.continueLoop(2, 1));
                 add(Statement.clearStack(2)); // scope
                 // for increment
-                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 3, true, -1));
                 add(Statement.assignVariable(false, 3, true, 0));
                 add(Statement.clearStack(2 + 0 + 2)); // increment + body + condition
@@ -438,27 +439,27 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("y", result.name);
-                Assertions.assertEquals(new Int32(10).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(10).getValue(), result.value.getValue());
             }
         }
         {
             String testStr = "int32 y = 0; for (;;) {y = y + 1; if (y == 10) break; continue; }";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare y
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("y", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
 
                 // for init
                 // for condition
                 // body
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
                 add(Statement.assignVariable(false, 1, true, 0));
                     // if condition
-                    add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64(10))));
-                    add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int32())));
+                    add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int32_T())));
                     add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
                     add(Statement.jumpRelConditional(false, 3, true, 0));
                     // true body
@@ -498,29 +499,29 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("y", result.name);
-                Assertions.assertEquals(new Int32(10).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(10).getValue(), result.value.getValue());
             }
         }
         {
             String testStr = "int32 y = 0; for (;true;) {y = y + 1; if (y == 10) break; continue; }";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare y
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("y", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
 
                 // for init
                 // for condition
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool(true))));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(true))));
                 add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
                 // body
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
                 add(Statement.assignVariable(false, 1, true, 0));
                     // if condition
-                    add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(10))));
-                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32())));
+                    add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
                     add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
                     add(Statement.jumpRelConditional(false, 3, true, 0));
                     // true body
@@ -562,35 +563,35 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("y", result.name);
-                Assertions.assertEquals(new Int32(10).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(10).getValue(), result.value.getValue());
             }
         }
         {
             String testStr = "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; continue; y = y + 1;}";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare x
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(10))));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // declare y
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("y", new Int32())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // while condition
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 1, true, -1));
                 add(Statement.jumpRelConditional(true, 2, true, 0));
                 add(Statement.clearStack(2)); // condition
                 add(Statement.jumpRel(12));
                 // body
-                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 1, true, -1));
                 add(Statement.assignVariable(false, 1, true, 0));
                 add(Statement.continueLoop(2+2, 6));
-                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
                 add(Statement.assignVariable(false, 3, true, 0));
                 add(Statement.clearStack(4)); // scope
@@ -622,35 +623,35 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.peek();
                 Assertions.assertEquals("y", result.name);
-                Assertions.assertEquals(new Int32(0).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(0).getValue(), result.value.getValue());
             }
         }
         {
             String testStr = "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; break; y = y + 1;}";
             ArrayList<Statement> instr = new ArrayList<Statement>() {{
                 // declare x
-                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64(10))));
-                add(Statement.declareVariable(new Variable("x", new Int32())));
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // declare y
-                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("y", new Int32())));
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
                 add(Statement.assignVariable(true, 0, true, -1));
                 // while condition
-                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64(0))));
-                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 1, true, -1));
                 add(Statement.jumpRelConditional(true, 2, true, 0));
                 add(Statement.clearStack(2)); // condition
                 add(Statement.jumpRel(12));
                 // body
-                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 1, true, -1));
                 add(Statement.assignVariable(false, 1, true, 0));
                 add(Statement.breakLoop(2+2, 7));
-                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64(1))));
-                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32())));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
                 add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
                 add(Statement.assignVariable(false, 3, true, 0));
                 add(Statement.clearStack(4)); // scope
@@ -682,7 +683,226 @@ public class InterpreterTest {
             for (Stack<Variable> stack : results) {
                 Variable result = stack.get(1);
                 Assertions.assertEquals("x", result.name);
-                Assertions.assertEquals(new Int32(9).getValue(), result.value.getValue());
+                Assertions.assertEquals(new Int32_T(9).getValue(), result.value.getValue());
+            }
+        }
+    }
+
+    @Test public void testExternalFunctions() {
+        {
+            Compiler compiler = new Compiler();
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{}, (Type_T[] p) -> {
+                return new Int32_T(999);
+            });
+            String testStr = "int32 x = 5; x = testFunc();";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare external function
+                add(Statement.declareVariable(new FunctionVariable("testFunc", funcDecl.retType, funcDecl.params, 1)));
+                add(Statement.jumpRel(1));
+                add(Statement.externalFunctionCall(funcDecl, true));
+
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // call external function
+                add(Statement.functionCall(1));
+                add(Statement.assignVariable(false, 2, true, 0));
+                // clear stack
+                add(Statement.clearStack(4));
+            }};
+
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+            // hardcoded
+            {
+                Interpreter interpreter = new Interpreter();
+                instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr);
+                results.add(interpreter.getStack()); 
+            }
+            // from compiler
+            {
+                ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+                Interpreter interpreter = new Interpreter();
+                instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr2);
+                results.add(interpreter.getStack()); 
+            }
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.get(2);
+                Assertions.assertEquals("x", result.name);
+                Assertions.assertEquals(new Int32_T(999).getValue(), result.value.getValue());
+            }
+        }
+        {
+            Compiler compiler = new Compiler();
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+                int p0 = ((Number)(p[0].getValue())).intValue();
+                return new Int32_T(p0 + 5);
+            });
+            String testStr = "int32 x = 5; x = testFunc(5);";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare external function
+                add(Statement.declareVariable(new FunctionVariable("testFunc", funcDecl.retType, funcDecl.params, 1)));
+                add(Statement.jumpRel(1));
+                add(Statement.externalFunctionCall(funcDecl, true));
+
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // call external function
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.functionCall(1));
+                add(Statement.assignVariable(false, 2, true, 0));
+                // clear stack
+                add(Statement.clearStack(4));
+            }};
+
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+            // hardcoded
+            {
+                Interpreter interpreter = new Interpreter();
+                instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr);
+                results.add(interpreter.getStack()); 
+            }
+            // from compiler
+            {
+                ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+                Interpreter interpreter = new Interpreter();
+                instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr2);
+                results.add(interpreter.getStack()); 
+            }
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.get(2);
+                Assertions.assertEquals("x", result.name);
+                Assertions.assertEquals(new Int32_T(10).getValue(), result.value.getValue());
+            }
+        }
+        {
+            Compiler compiler = new Compiler();
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("testFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+                int p0 = ((Number)(p[0].getValue())).intValue();
+                return new Int32_T(p0 + 5);
+            });
+            Compiler.ExtFuncDecl funcDecl2 = compiler.addExternalFunction("testFunc2", new Int32_T(), new Type_T[]{new Int32_T()}, (Type_T[] p) -> {
+                int p0 = ((Number)(p[0].getValue())).intValue();
+                return new Int32_T(p0 + 10);
+            });
+            String testStr = "int32 x = 5; x = testFunc(5); x = testFunc2(6);";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare external functions
+                add(Statement.declareVariable(new FunctionVariable("testFunc", funcDecl.retType, funcDecl.params, 1)));
+                add(Statement.jumpRel(1));
+                add(Statement.externalFunctionCall(funcDecl, true));
+                add(Statement.declareVariable(new FunctionVariable("testFunc2", funcDecl2.retType, funcDecl2.params, 4)));
+                add(Statement.jumpRel(1));
+                add(Statement.externalFunctionCall(funcDecl2, true));
+
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // call external function
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.functionCall(1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                // call external function
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(6))));
+                add(Statement.functionCall(4));
+                add(Statement.assignVariable(false, 3, true, 0));
+                // clear stack
+                add(Statement.clearStack(6));
+            }};
+
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+            // hardcoded
+            {
+                Interpreter interpreter = new Interpreter();
+                instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr);
+                results.add(interpreter.getStack()); 
+            }
+            // from compiler
+            {
+                ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+                Interpreter interpreter = new Interpreter();
+                instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr2);
+                results.add(interpreter.getStack()); 
+            }
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.get(3);
+                Assertions.assertEquals("x", result.name);
+                Assertions.assertEquals(new Int32_T(16).getValue(), result.value.getValue());
+            }
+        }
+        {
+          Compiler compiler = new Compiler();
+            Compiler.ExtFuncDecl funcDecl = compiler.addExternalFunction("externalFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
+                int p0 = Script.intParam(p[0]);
+                return new Int32_T(p0 + 2);
+            });
+            String testStr = "int32 x = 0; while (x < 10) { x = x + externalFunc(x); }";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare external functions
+                add(Statement.declareVariable(new FunctionVariable(funcDecl.name, funcDecl.retType, funcDecl.params, 1)));
+                add(Statement.jumpRel(1));
+                add(Statement.externalFunctionCall(funcDecl, true));
+
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // while
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_LESS, true, 0, false, 2, true, -1));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(2)); // condition
+                add(Statement.jumpRel(8));
+                // body
+                add(Statement.createTempCopy(false, 2));
+                add(Statement.functionCall(1));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 2, true, -1));
+                add(Statement.assignVariable(false, 2, true, 0));
+                add(Statement.clearStack(2)); // scope
+                // while
+                add(Statement.clearStack(2)); // body + condition
+                add(Statement.jumpRel(-(7+6+1))); // -(body + condition + 1)
+
+                // clear stack
+                add(Statement.clearStack(3));
+            }};
+
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+            // hardcoded
+            {
+                Interpreter interpreter = new Interpreter();
+                instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr);
+                results.add(interpreter.getStack()); 
+            }
+            // from compiler
+            {
+                ArrayList<Statement> instr2 = compiler.compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+                Interpreter interpreter = new Interpreter();
+                instr2.remove(instr2.size() - 1); // remove stack clear instruction to see variables
+                interpreter.execute(instr2);
+                results.add(interpreter.getStack()); 
+            }
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.get(2);
+                Assertions.assertEquals("x", result.name);
+                Assertions.assertEquals(new Int32_T(14).getValue(), result.value.getValue());
             }
         }
     }

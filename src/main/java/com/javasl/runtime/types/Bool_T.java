@@ -1,10 +1,10 @@
 package com.javasl.runtime.types;
 
-public class Bool extends Type {
-    public Bool() {
+public class Bool_T extends Type_T {
+    public Bool_T() {
         m_value = false;
     }
-    public Bool(boolean value) {
+    public Bool_T(boolean value) {
         m_value = value;
     }
 
@@ -25,136 +25,136 @@ public class Bool extends Type {
     }
 
     // ops
-    public Type op_multiply(Type other) {
+    public Type_T op_multiply(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs * rhs);
         return val;
     }
-    public Type op_divide(Type other) {
+    public Type_T op_divide(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs / rhs);
         return val;
     }
-    public Type op_modulo(Type other) {
+    public Type_T op_modulo(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs % rhs);
         return val;
     }
-    public Type op_plus(Type other) {
+    public Type_T op_plus(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs + rhs);
         return val;
     }
-    public Type op_minus(Type other) {
+    public Type_T op_minus(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs - rhs);
         return val;
     }
-    public Type op_shift_left(Type other) {
+    public Type_T op_shift_left(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs << rhs);
         return val;
     }
-    public Type op_shift_right(Type other) {
+    public Type_T op_shift_right(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs >> rhs);
         return val;
     }
-    public Type op_less(Type other) {
+    public Type_T op_less(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs < rhs);
         return val;
     }
-    public Type op_less_equal(Type other) {
+    public Type_T op_less_equal(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs <= rhs);
         return val;
     }
-    public Type op_greater(Type other) {
+    public Type_T op_greater(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs > rhs);
         return val;
     }
-    public Type op_greater_equal(Type other) {
+    public Type_T op_greater_equal(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs >= rhs);
         return val;
     }
-    public Type op_equal(Type other) {
+    public Type_T op_equal(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs == rhs);
         return val;
     }
-    public Type op_not_equal(Type other) {
+    public Type_T op_not_equal(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs != rhs);
         return val;
     }
-    public Type op_bitwise_and(Type other) {
+    public Type_T op_bitwise_and(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs & rhs);
         return val;
     }
-    public Type op_bitwise_xor(Type other) {
+    public Type_T op_bitwise_xor(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs ^ rhs);
         return val;
     }
-    public Type op_bitwise_or(Type other) {
+    public Type_T op_bitwise_or(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Int64();
+        Type_T val = new Int64_T();
         val.setValue(lhs | rhs);
         return val;
     }
-    public Type op_logical_and(Type other) {
+    public Type_T op_logical_and(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue((lhs != 0) && (rhs != 0));
         return val;
     }
-    public Type op_logical_or(Type other) {
+    public Type_T op_logical_or(Type_T other) {
         Long lhs = m_value ? 1L : 0L;
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue((lhs != 0) || (rhs != 0));
         return val;
     }
 
     // misc
-    public Type getTypeInstance() {
-        return new Bool();
+    public Type_T getTypeInstance() {
+        return new Bool_T();
     }
     public String toString() {
         return "bool(" + Boolean.toString(m_value) + ")";

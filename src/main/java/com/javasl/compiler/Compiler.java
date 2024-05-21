@@ -9,10 +9,18 @@ import com.javasl.runtime.FunctionVariable;
 import com.javasl.runtime.Statement;
 import com.javasl.runtime.Variable;
 import com.javasl.runtime.types.*;
-import com.javasl.runtime.types.Void;
 
 public class Compiler {
     public ArrayList<Statement> compile(AST ast) throws IllegalArgumentException {
+        // reset variables if someone wants to compile again with the same compiler instance
+        m_backpatches = new ArrayList<>();
+        m_functionIp = 0;
+        m_functionVariables = new HashSet<>();
+        m_inFunction = false;
+        m_variableStack = new Stack<>();
+        m_loopBackpatches = new Stack<>();
+        m_scopeStack = new Stack<>();
+        m_tempVariableCounter = 0;
 
         try {
             ArrayList<Statement> statements = dispatchToCompile(ast);
@@ -41,12 +49,54 @@ public class Compiler {
     }
 
     private ArrayList<Statement> compileBlockNode(BlockNode ast) {
-        startScope();
         ArrayList<Statement> ret = new ArrayList<>();
+        startScope();
+        // if this is the global scope, add external functions here
+        if (m_scopeStack.size() == 1) {
+            // for external functions, use latest name declaration to avoid collisions
+            ArrayList<ExtFuncDecl> externalFunctions = new ArrayList<>();
+            for (int i = m_externalFunctions.size() - 1; i >= 0; i--) {
+                ExtFuncDecl funcDecl = m_externalFunctions.get(i);
+                boolean found = false;
+                for (ExtFuncDecl existingDecl : externalFunctions) {
+                    if (existingDecl.name.equals(funcDecl.name)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) continue;
+                externalFunctions.add(funcDecl);
+            }
+            for (int i = externalFunctions.size() - 1; i >= 0; i--) {
+                ExtFuncDecl funcDecl = externalFunctions.get(i);
+                ret.addAll(compileExternalFunction(funcDecl));
+            }
+        }
+
+        // compile the block itself
         for (AST statement : ast.statements) {
             ret.addAll(dispatchToCompile(statement));
         }
         ret.addAll(endScope());
+        return ret;
+    }
+    private ArrayList<Statement> compileExternalFunction(ExtFuncDecl funcDecl) {
+        ArrayList<Statement> ret = new ArrayList<>();
+
+        // add to scope
+        FunctionVariable funcVar = new FunctionVariable(funcDecl.name, funcDecl.retType, funcDecl.params, m_functionIp + 1);
+        ret.add(Statement.declareVariable(funcVar));
+        m_functionIp++;
+        addVariableToScope(funcVar);
+
+        // jump past call
+        ret.add(Statement.jumpRel(1));
+        m_functionIp++;
+
+        // call external function
+        ret.add(Statement.externalFunctionCall(funcDecl, !(funcDecl.retType instanceof Void_T)));
+        m_functionIp++;
+
         return ret;
     }
     private ArrayList<Statement> compileBreakNode(BreakNode ast) {
@@ -494,7 +544,7 @@ public class Compiler {
             Variable delVar = m_variableStack.peek();
             removeVariableFromScope(delVar);
         }
-        if (!(funcVar.value instanceof Void)) {
+        if (!(funcVar.value instanceof Void_T)) {
             Variable tempVar = new TempVariable(funcVar.value.getTypeInstance());
             addVariableToScope(tempVar);
         }
@@ -543,7 +593,7 @@ public class Compiler {
                 m_functionIp++;
             } else if (param instanceof LiteralNode) {
                 LiteralNode node = (LiteralNode) param;
-                TempVariable tempVar = new TempVariable(Type.fromToken(node.literal));
+                TempVariable tempVar = new TempVariable(Type_T.fromToken(node.literal));
                 tempVar.value.assignValueFromString(node.literal.textRepresentation);
                 addVariableToScope(tempVar);
                 ret.add(Statement.declareVariable(tempVar));
@@ -591,7 +641,7 @@ public class Compiler {
                 }
                 retIndex = getVariableStackLocation(var);
 
-                Type retType = m_variableStack.get(retIndex).value.getTypeInstance();
+                Type_T retType = m_variableStack.get(retIndex).value.getTypeInstance();
                 Variable tempVar = new TempVariable(retType);
                 addVariableToScope(tempVar);
                 ret.add(Statement.declareVariable(tempVar));
@@ -625,7 +675,7 @@ public class Compiler {
         ArrayList<Variable> params = compileParamDeclarationNode(ast.paramDeclaration);
 
         // check if name is taken already
-        FunctionVariable funcVar = new FunctionVariable(ast.declaration.identifier.textRepresentation, Type.fromToken(ast.declaration.type), params, m_functionIp + 1);
+        FunctionVariable funcVar = new FunctionVariable(ast.declaration.identifier.textRepresentation, Type_T.fromToken(ast.declaration.type), params, m_functionIp + 1);
         if (doesVariableExist(funcVar)) {
             throw new IllegalArgumentException("Function name taken, variable already exists in scope: " + funcVar.name);
         }
@@ -657,7 +707,7 @@ public class Compiler {
     private ArrayList<Variable> compileParamDeclarationNode(ParamDeclarationNode ast) {
         ArrayList<Variable> ret = new ArrayList<>();
         for (DeclarationNode declaration : ast.declarations) {
-            Variable var = new Variable(declaration.identifier.textRepresentation, Type.fromToken(declaration.type));
+            Variable var = new Variable(declaration.identifier.textRepresentation, Type_T.fromToken(declaration.type));
             for (Variable v : ret) {
                 if (v.equals(var)) {
                     throw new IllegalArgumentException("Duplicate parameter name: " + var.name);
@@ -697,7 +747,7 @@ public class Compiler {
             rhsIndex = m_variableStack.size() - 1;
             rhsRel = true;
         }
-        Type rhsType = m_variableStack.get(rhsIndex).value.getTypeInstance();
+        Type_T rhsType = m_variableStack.get(rhsIndex).value.getTypeInstance();
 
 
         // lhs
@@ -725,7 +775,7 @@ public class Compiler {
             lhsIndex = m_variableStack.size() - 1;
             lhsRel = true;
         }
-        Type lhsType = m_variableStack.get(lhsIndex).value.getTypeInstance();
+        Type_T lhsType = m_variableStack.get(lhsIndex).value.getTypeInstance();
         
         checkIfTypesAreCompatible(lhsType, rhsType, Token.Type.OP_ASSIGN);
 
@@ -745,7 +795,7 @@ public class Compiler {
         ArrayList<Statement> ret = new ArrayList<>();
 
         // create variable
-        Variable var = new Variable(ast.identifier.textRepresentation, Type.fromToken(ast.type));
+        Variable var = new Variable(ast.identifier.textRepresentation, Type_T.fromToken(ast.type));
 
         // declare variable
         if (doesVariableExist(var)) {
@@ -785,7 +835,7 @@ public class Compiler {
             lhsIndex = m_variableStack.size() - 1;
             lhsRel = true;
         }
-        Type lhsType = m_variableStack.get(lhsIndex).value.getTypeInstance();
+        Type_T lhsType = m_variableStack.get(lhsIndex).value.getTypeInstance();
 
         // rhs
         int rhsIndex = -1;
@@ -812,7 +862,7 @@ public class Compiler {
             rhsIndex = m_variableStack.size() - 1;
             rhsRel = true;
         }
-        Type rhsType = m_variableStack.get(rhsIndex).value.getTypeInstance();
+        Type_T rhsType = m_variableStack.get(rhsIndex).value.getTypeInstance();
 
         // check if lhs and rhs are compatible types
         checkIfTypesAreCompatible(lhsType, rhsType, ast.operator.type);
@@ -843,7 +893,7 @@ public class Compiler {
     private ArrayList<Statement> compileLiteralNode(LiteralNode ast) {
         ArrayList<Statement> ret = new ArrayList<>();
         // create temp variable on the stack to store literal
-        Variable var = new TempVariable(Type.fromToken(ast.literal));
+        Variable var = new TempVariable(Type_T.fromToken(ast.literal));
         var.value.assignValueFromString(ast.literal.textRepresentation);
         addVariableToScope(var);
         // declare variable with value
@@ -852,10 +902,13 @@ public class Compiler {
         return ret;
     }
 
-    private void checkIfTypesAreCompatible(Type lhs, Type rhs, Token.Type op) {
+    private void checkIfTypesAreCompatible(Type_T lhs, Type_T rhs, Token.Type op) {
         // TODO: add more checks
-        if ((lhs instanceof UnsignedInt || lhs instanceof SignedInt || lhs instanceof Bool) &&
-            (rhs instanceof UnsignedInt || rhs instanceof SignedInt || rhs instanceof Bool)) {
+        if ((lhs instanceof Any_T || lhs instanceof UnsignedInt_T || lhs instanceof SignedInt_T || lhs instanceof Bool_T) &&
+            (rhs instanceof UnsignedInt_T || rhs instanceof SignedInt_T || rhs instanceof Bool_T)) {
+            return;
+        }
+        if (lhs instanceof Any_T && rhs instanceof Any_T) {
             return;
         }
 
@@ -912,7 +965,7 @@ public class Compiler {
     }
 
     private class TempVariable extends Variable {
-        public TempVariable(Type type) {
+        public TempVariable(Type_T type) {
             super(m_tempVariableCounter++ + "_COMPILER_TEMP", type);
         }
     }
@@ -956,4 +1009,31 @@ public class Compiler {
     }
     private ArrayList<Backpatch> m_backpatches = new ArrayList<>();
     private Stack<LoopBackpatch> m_loopBackpatches = new Stack<>();
+
+    // external functions
+    public static class ExtFuncDecl {
+        public String name;
+        public Type_T retType;
+        public ArrayList<Variable> params;
+        public ExternalFunction<? extends Type_T> function;
+    }
+    @FunctionalInterface public static interface ExternalFunction<Ret extends Type_T>  {
+        public Ret execute(Type_T ...params);
+    }
+    // return value for testing purposes only
+    public ExtFuncDecl addExternalFunction(String name, Type_T retType, Type_T[] params, ExternalFunction<? extends Type_T> function) {
+        ExtFuncDecl decl = new ExtFuncDecl();
+        decl.name = name;
+        decl.retType = retType;
+        decl.function = function;
+        decl.params = new ArrayList<>();
+        for (int i = 0; i < params.length; i++) {
+            Type_T param = params[i];
+            decl.params.add(new Variable("param_" + params[i], param));
+        }
+
+        m_externalFunctions.add(decl);
+        return decl;
+    }
+    private ArrayList<ExtFuncDecl> m_externalFunctions = new ArrayList<>();
 }

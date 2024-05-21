@@ -1,10 +1,10 @@
 package com.javasl.runtime.types;
 
-public class Uint16 extends UnsignedInt<Short> {
-    public Uint16() {
+public class Uint16_T extends UnsignedInt_T<Short> {
+    public Uint16_T() {
         super((short) 0);
     }
-    public Uint16(long value) {
+    public Uint16_T(long value) {
         super((short)value);
     }
     
@@ -14,8 +14,8 @@ public class Uint16 extends UnsignedInt<Short> {
     }
 
     // misc
-    public Type getTypeInstance() {
-        return new Uint16();
+    public Type_T getTypeInstance() {
+        return new Uint16_T();
     }
     public String toString() {
         return "uint16(" + Integer.toUnsignedString(Short.toUnsignedInt((Short)getValue())) + ")";

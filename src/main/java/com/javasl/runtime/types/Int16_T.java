@@ -1,10 +1,10 @@
 package com.javasl.runtime.types;
 
-public class Int16 extends SignedInt<Short> {
-    public Int16() {
+public class Int16_T extends SignedInt_T<Short> {
+    public Int16_T() {
         super((short) 0);
     }
-    public Int16(long value) {
+    public Int16_T(long value) {
         super((short)value);
     }
     
@@ -14,8 +14,8 @@ public class Int16 extends SignedInt<Short> {
     }
 
     // misc
-    public Type getTypeInstance() {
-        return new Int16();
+    public Type_T getTypeInstance() {
+        return new Int16_T();
     }
     public String toString() {
         return "int16(" + getValue() + ")";

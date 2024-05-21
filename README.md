@@ -25,6 +25,29 @@ Scalar:
 |9|&&|
 |10|\|\||
 
+# Example usage
+```java
+    String sourceString = "int32 i = 0; while (i < 10) { i = i + externalFunc(i); } print(i);";
+    Script script = new Script();
+    script.addDefaultFunctionPrint();
+    script.addExternalFunction("externalFunc", new Int32_T(), new Type_T[]{new Int32_T()}, (p) -> {
+        int p0 = Script.intParam(p[0]);
+        return new Int32_T(p0 + 2);
+    });
+
+    try {
+        script.compileFromSource(sourceString);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    if (script.isReady()) {
+        script.execute();
+    }
+```
+```
+    Output to stdout: 14
+```
+
 # Grammar
 TODO: move IDENTIFIER IDENTIFIER from LHS to VAR_DECL  
 - TERM[x] means for every operator precedence apply this grammar 

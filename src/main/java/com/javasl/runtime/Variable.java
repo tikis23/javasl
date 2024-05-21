@@ -1,12 +1,12 @@
 package com.javasl.runtime;
 
-import com.javasl.runtime.types.Type;
+import com.javasl.runtime.types.Type_T;
 
 public class Variable {
     public String name;
-    public Type value;
+    public Type_T value;
 
-    public Variable(String name, Type value) {
+    public Variable(String name, Type_T value) {
         this.name = name;
         this.value = value;
     }

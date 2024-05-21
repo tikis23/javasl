@@ -1,7 +1,7 @@
 package com.javasl.runtime.types;
 
-public abstract class UnsignedInt<T> extends Type {
-    public UnsignedInt(T value) {
+public abstract class UnsignedInt_T<T> extends Type_T {
+    public UnsignedInt_T(T value) {
         m_value = value;
     }
 
@@ -14,129 +14,129 @@ public abstract class UnsignedInt<T> extends Type {
     }
 
     // ops 
-    public Type op_multiply(Type other) {
+    public Type_T op_multiply(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs * rhs);
         return val;
     }
-    public Type op_divide(Type other) {
+    public Type_T op_divide(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(Long.divideUnsigned(lhs, rhs));
         return val;
     }
-    public Type op_modulo(Type other) {
+    public Type_T op_modulo(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(Long.remainderUnsigned(lhs, rhs));
         return val;
     }
-    public Type op_plus(Type other) {
+    public Type_T op_plus(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs + rhs);
         return val;
     }
-    public Type op_minus(Type other) {
+    public Type_T op_minus(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs - rhs);
         return val;
     }
-    public Type op_shift_left(Type other) {
+    public Type_T op_shift_left(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs << rhs);
         return val;
     }
-    public Type op_shift_right(Type other) {
+    public Type_T op_shift_right(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs >>> rhs);
         return val;
     }
-    public Type op_less(Type other) {
+    public Type_T op_less(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(Long.compareUnsigned(lhs, rhs) < 0);
         return val;
     }
-    public Type op_less_equal(Type other) {
+    public Type_T op_less_equal(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(Long.compareUnsigned(lhs, rhs) <= 0);
         return val;
     }
-    public Type op_greater(Type other) {
+    public Type_T op_greater(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(Long.compareUnsigned(lhs, rhs) > 0);
         return val;
     }
-    public Type op_greater_equal(Type other) {
+    public Type_T op_greater_equal(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(Long.compareUnsigned(lhs, rhs) >= 0);
         return val;
     }
-    public Type op_equal(Type other) {
+    public Type_T op_equal(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs == rhs);
         return val;
     }
-    public Type op_not_equal(Type other) {
+    public Type_T op_not_equal(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue(lhs != rhs);
         return val;
     }
-    public Type op_bitwise_and(Type other) {
+    public Type_T op_bitwise_and(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs & rhs);
         return val;
     }
-    public Type op_bitwise_xor(Type other) {
+    public Type_T op_bitwise_xor(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs ^ rhs);
         return val;
     }
-    public Type op_bitwise_or(Type other) {
+    public Type_T op_bitwise_or(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Uint64();
+        Type_T val = new Uint64_T();
         val.setValue(lhs | rhs);
         return val;
     }
-    public Type op_logical_and(Type other) {
+    public Type_T op_logical_and(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue((lhs != 0) && (rhs != 0));
         return val;
     }
-    public Type op_logical_or(Type other) {
+    public Type_T op_logical_or(Type_T other) {
         Long lhs = ((Number)m_value).longValue();
         Long rhs = ((Number)other.getValue()).longValue();
-        Type val = new Bool();
+        Type_T val = new Bool_T();
         val.setValue((lhs != 0) || (rhs != 0));
         return val;
     }

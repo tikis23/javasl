@@ -1,5 +1,6 @@
 package com.javasl.runtime;
 
+import com.javasl.compiler.Compiler;
 import com.javasl.compiler.Token;
 import com.javasl.runtime.types.*;
 
@@ -247,7 +248,7 @@ public interface Statement {
         };
     }
     public static Statement jumpRelConditional(boolean invert, int offset, boolean source_rel, int source_sp) {
-        Uint8 zero = new Uint8(0);
+        Uint8_T zero = new Uint8_T(0);
         if (source_rel) {
             return new Statement() {
                 public void execute(Interpreter.State state) {
@@ -313,6 +314,27 @@ public interface Statement {
                 }
             };
         }
+    }
+    public static Statement externalFunctionCall(Compiler.ExtFuncDecl funcDecl, boolean returnsValue) {
+        return new Statement() {
+            public void execute(Interpreter.State state) {
+                // take params from stack
+                Type_T[] params = new Type_T[funcDecl.params.size()];
+                for (int i = funcDecl.params.size() - 1; i >= 0; i--) {
+                    params[i] = state.variables.pop().value;
+                }
+                
+                // execute function
+                Type_T ret = funcDecl.function.execute(params);
+                if (returnsValue) state.variables.add(new Variable("func_ret_val", ret));
+
+                // return from function
+                state.ip = state.funcCalls.pop();
+            }
+            public String toString() {
+                return "externalFunctionCall " + funcDecl.name;
+            }
+        };
     }
     public static Statement debugPrint() {
         return new Statement() {
