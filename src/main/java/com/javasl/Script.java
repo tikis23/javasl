@@ -86,6 +86,12 @@ public class Script {
     public static long longParam(Type_T param) {
         return ((Number)param.getValue()).longValue();
     }
+    public static float floatParam(Type_T param) {
+        return ((Number)param.getValue()).floatValue();
+    }
+    public static double doubleParam(Type_T param) {
+        return ((Number)param.getValue()).doubleValue();
+    }
 
     // default (optional) external functions
     public void addDefaultFunctionPrint(boolean yieldAfterReturn) {
