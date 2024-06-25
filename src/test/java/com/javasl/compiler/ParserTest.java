@@ -815,6 +815,147 @@ public class ParserTest {
             CompareAST(expectedAst, ast);
         }
     }
+    @Test public void testComments() {
+        {
+            String testStr = "while (15 < 76) { int64 x = 1; break; //continue never reached\n continue; }";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new WhileLoopNode() {{
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_LESS, "<");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "15");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "76");
+                    }};
+                }};
+                body = new BlockNode() {{
+                    statements.add(new AssignmentNode() {{
+                        lhs = new DeclarationNode() {{
+                            type = new Token(Token.Type.T_INT64, "int64");
+                            identifier = new Token(Token.Type.IDENTIFIER, "x");
+                        }};
+                        rhs = new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }};
+                    }});
+                    statements.add(new BreakNode());
+                    statements.add(new ContinueNode());
+                }};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+        {
+            String testStr = "for (int32 x = 0; x < 5; x = x + 1) {} // end of file";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new ForLoopNode() {{
+                init = new AssignmentNode() {{
+                    lhs = new DeclarationNode() {{
+                        type = new Token(Token.Type.T_INT32, "int32");
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "0");
+                    }};
+                }};
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_LESS, "<");
+                    lhs = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "5");
+                    }};
+                }};
+                increment = new AssignmentNode() {{
+                    lhs = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new BinaryOpNode() {{
+                        operator = new Token(Token.Type.OP_PLUS, "+");
+                        lhs = new IdentifierNode() {{
+                            identifier = new Token(Token.Type.IDENTIFIER, "x");
+                        }};
+                        rhs = new LiteralNode() {{
+                            literal = new Token(Token.Type.LIT_NUMBER, "1");
+                        }};
+                    }};
+                }};
+                body = new BlockNode() {{}};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+        {
+            String testStr = "// test comment! int y = 1555555; \n int32 x = 5; for (x = 0; 5 > 2;) {}";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new AssignmentNode() {{
+                lhs = new DeclarationNode() {{
+                    type = new Token(Token.Type.T_INT32, "int32");
+                    identifier = new Token(Token.Type.IDENTIFIER, "x");
+                }};
+                rhs = new LiteralNode() {{
+                    literal = new Token(Token.Type.LIT_NUMBER, "5");
+                }};
+            }});
+            expectedAst.statements.add(new ForLoopNode() {{
+                init = new AssignmentNode() {{
+                    lhs = new IdentifierNode() {{
+                        identifier = new Token(Token.Type.IDENTIFIER, "x");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "0");
+                    }};
+                }};
+                condition = new BinaryOpNode() {{
+                    operator = new Token(Token.Type.OP_GREATER, ">");
+                    lhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "5");
+                    }};
+                    rhs = new LiteralNode() {{
+                        literal = new Token(Token.Type.LIT_NUMBER, "2");
+                    }};
+                }};
+                increment = null;
+                body = new BlockNode() {{}};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+        {
+            String testStr = "//infinite loop\n for (;;) {}";
+            BlockNode expectedAst = new BlockNode();
+            expectedAst.statements.add(new ForLoopNode() {{
+                init = null;
+                condition = null;
+                increment = null;
+                body = new BlockNode() {{}};
+            }});
+
+            Tokenizer tokenizer = new Tokenizer();
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            Parser parser = new Parser();
+            AST ast = parser.parse(tokens);
+            Assertions.assertNotNull(ast);
+            CompareAST(expectedAst, ast);
+        }
+    }
 
     private void CompareAST(AST expected, AST actual) {
         if (expected instanceof BlockNode) {

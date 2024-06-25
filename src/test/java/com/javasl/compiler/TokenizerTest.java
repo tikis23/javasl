@@ -93,6 +93,30 @@ public class TokenizerTest {
             Assertions.assertNotEquals(tokens.get(5).textRepresentation, "null");
         }
     }
+    @Test public void testComments() {
+        {
+            Tokenizer tokenizer = new Tokenizer();
+            String testStr = "if else do while";
+            testStr += "// This is a comment \n for break";
+            ArrayList<Token> tokens = tokenizer.tokenize(testStr);
+            ArrayList<Token> expectedTokens = new ArrayList<Token>() {{
+                add(new Token(Token.Type.KW_IF, "if"));
+                add(new Token(Token.Type.KW_ELSE, "else"));
+                add(new Token(Token.Type.KW_DO, "do"));
+                add(new Token(Token.Type.KW_WHILE, "while"));
+                add(new Token(Token.Type.COMMENT, " This is a comment "));
+                add(new Token(Token.Type.KW_FOR, "for"));
+                add(new Token(Token.Type.KW_BREAK, "break"));
+            }};
+            Assertions.assertEquals(expectedTokens.size(), tokens.size());
+            for (int i = 0; i < tokens.size(); i++) {
+                Token expectedToken = expectedTokens.get(i);
+                Token token = tokens.get(i);
+                Assertions.assertEquals(expectedToken.type, token.type);
+                Assertions.assertEquals(expectedToken.textRepresentation, token.textRepresentation);
+            }
+        }
+    }
     @Test public void testIdentifiers() {
         {
             Tokenizer tokenizer = new Tokenizer();
