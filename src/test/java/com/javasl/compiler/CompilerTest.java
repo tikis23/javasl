@@ -160,10 +160,657 @@ public class CompilerTest {
 
             CompareStatementLists(instr, result);
         }
+        {
+            String testStr = "int64 value = 5;";
+            testStr += "int32 foo(int32 PARAM1, int32 PARAM2) { int32 x = PARAM1 + value; return x + PARAM2; }";
+            testStr += "int32 bar(bool PARAM1, uint64 PARAM2) { if (PARAM1 == true) return PARAM2; return 0; }";
+            testStr += "int32 result = foo(2, 3) + bar(false, 5);";
+            ArrayList<Variable> fooParams = new ArrayList<Variable>() {{
+                add(new Variable("PARAM1", new Int32_T()));
+                add(new Variable("PARAM2", new Int32_T()));
+            }};
+            ArrayList<Variable> barParams = new ArrayList<Variable>() {{
+                add(new Variable("PARAM1", new Bool_T()));
+                add(new Variable("PARAM2", new Uint64_T()));
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // define var
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.declareVariable(new Variable("value", new Int64_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("foo", new Int32_T(), fooParams, 4)));
+                add(Statement.jumpRel(7));
+
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, true, -2, false, 1));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // return x
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, true, -1, true, -3));
+                add(Statement.functionReturn(true, 3 + 2 - 1)); // local + params - return
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("bar", new Int32_T(), barParams, 13)));
+                add(Statement.jumpRel(12));
+
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Bool_T())));
+                add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, true, -3, true, -1));
+                add(Statement.jumpRelConditional(false, 5, true, 0));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Uint64_T(0))));
+                add(Statement.assignVariable(true, 0, true, -3));
+                add(Statement.functionReturn(true, 4));
+                add(Statement.clearStack(3));
+                add(Statement.jumpRel(1));
+                add(Statement.clearStack(2));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.functionReturn(true, 2));
+     
+                // function call
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int64_T(2))));
+                add(Statement.declareVariable(new Variable("8_COMPILER_TEMP", new Int64_T(3))));
+                add(Statement.functionCall(4));
+                add(Statement.declareVariable(new Variable("10_COMPILER_TEMP", new Bool_T(false))));
+                add(Statement.declareVariable(new Variable("11_COMPILER_TEMP", new Int64_T(5))));
+                add(Statement.functionCall(13));
+                add(Statement.declareVariable(new Variable("13_COMPILER_TEMP", new Int32_T(0))));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, true, -2, true, -1));
+                add(Statement.declareVariable(new Variable("result", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                add(Statement.clearStack(8));
+            }};
+            
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            CompareStatementLists(instr, result);
+        }
     }
 
-    @Test public void testConditionals() {
+    @Test public void testControlsWithFuncDefinitions() {
+        {
+            String testStr = "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; continue; y = y + 1;}";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // declare y
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // while condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 1, true, -1));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(2)); // condition
+                add(Statement.jumpRel(12));
+                // body
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                add(Statement.continueLoop(4, 6));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                add(Statement.clearStack(4)); // scope
+                // loop to while
+                add(Statement.clearStack(2)); // body + condition
+                add(Statement.jumpRel(-(11+6+1))); // -(body + condition + 1)
 
+                // clear stack
+                add(Statement.clearStack(4));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "void func(){return;}";
+            testStr += "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; continue; y = y + 1;}";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 1)));
+                add(Statement.jumpRel(1));
+                add(Statement.functionReturn(false, 0 + 0 - 0)); // local + params - return
+
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // declare y
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // while condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 2, true, -1));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(2)); // condition
+                add(Statement.jumpRel(12));
+                // body
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 2, true, -1));
+                add(Statement.assignVariable(false, 2, true, 0));
+                add(Statement.continueLoop(4, 6));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 4, true, -1));
+                add(Statement.assignVariable(false, 4, true, 0));
+                add(Statement.clearStack(4)); // scope
+                // loop to while
+                add(Statement.clearStack(2)); // body + condition
+                add(Statement.jumpRel(-(11+6+1))); // -(body + condition + 1)
+
+                // clear stack
+                add(Statement.clearStack(5));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "void func(){return;}";
+            testStr += "void func2(){return;}";
+            testStr += "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; continue; y = y + 1;}";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 1)));
+                add(Statement.jumpRel(1));
+                add(Statement.functionReturn(false, 0 + 0 - 0)); // local + params - return
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func2", new Void_T(), funcParams, 4)));
+                add(Statement.jumpRel(1));
+                add(Statement.functionReturn(false, 0 + 0 - 0)); // local + params - return
+
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // declare y
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // while condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 3, true, -1));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(2)); // condition
+                add(Statement.jumpRel(12));
+                // body
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 3, true, -1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                add(Statement.continueLoop(4, 6));
+                add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 5, true, -1));
+                add(Statement.assignVariable(false, 5, true, 0));
+                add(Statement.clearStack(4)); // scope
+                // loop to while
+                add(Statement.clearStack(2)); // body + condition
+                add(Statement.jumpRel(-(11+6+1))); // -(body + condition + 1)
+
+                // clear stack
+                add(Statement.clearStack(6));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "int32 x = 10; int32 y = 0;";
+            testStr += "void func(){ for (;true;) {y = y + 1; if (y == 10) break; continue; } return;}";
+            testStr += "while (x > 0) {x = x - 1; continue; y = y + 1;}";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // declare y
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 7)));
+                add(Statement.jumpRel(20));
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 3, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+                add(Statement.functionReturn(false, 0 + 0 - 0)); // local + params - return
+
+                // while condition
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("8_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_GREATER, true, 0, false, 1, true, -1));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(2)); // condition
+                add(Statement.jumpRel(12));
+                // body
+                add(Statement.declareVariable(new Variable("9_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("10_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_MINUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                add(Statement.continueLoop(4, 6));
+                add(Statement.declareVariable(new Variable("11_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("12_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                add(Statement.clearStack(4)); // scope
+                // loop to while
+                add(Statement.clearStack(2)); // body + condition
+                add(Statement.jumpRel(-(11+6+1))); // -(body + condition + 1)
+
+                // clear stack
+                add(Statement.clearStack(5));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "int32 x = 10; int32 y = 0;";
+            testStr += "void func(){ for (;true;) {y = y + 1; if (y == 10) break; continue; } return;}";
+            testStr += "for (;true;) {y = y + 1; if (y == 10) break; continue; }";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare x
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(10))));
+                add(Statement.declareVariable(new Variable("x", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+                // declare y
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 7)));
+                add(Statement.jumpRel(20));
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 3, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+                add(Statement.functionReturn(false, 0 + 0 - 0)); // local + params - return
+
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("8_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("9_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 3, true, -1));
+                add(Statement.assignVariable(false, 3, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("10_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("11_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 3, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+
+                // clear stack
+                add(Statement.clearStack(5));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "int32 y = 0;";
+            testStr += "for (;true;) {y = y + 1; if (y == 10) break; continue; }";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare y
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+
+                // clear stack
+                add(Statement.clearStack(2));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "int32 y = 0;";
+            testStr += "void func() { return; }";
+            testStr += "for (;true;) {y = y + 1; if (y == 10) break; continue; }";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare y
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 4)));
+                add(Statement.jumpRel(1));
+                add(Statement.functionReturn(false, 0));
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+
+                // clear stack
+                add(Statement.clearStack(3));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "int32 y = 0;";
+            testStr += "void func() {while (true) {continue; break;} return; }";
+            testStr += "for (;true;) {y = y + 1; if (y == 10) break; continue; }";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare y
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 4)));
+                add(Statement.jumpRel(10));
+                // while condition
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(1)); // condition
+                add(Statement.jumpRel(5));
+                // body
+                add(Statement.continueLoop(1, 3));
+                add(Statement.breakLoop(1, 3));
+                add(Statement.clearStack(0)); // scope
+                // loop to while
+                add(Statement.clearStack(1)); // body + condition
+                add(Statement.jumpRel(-9)); // -(body + condition + 1)
+                add(Statement.functionReturn(false, 0));
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+
+                // clear stack
+                add(Statement.clearStack(3));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "int32 y = 0;";
+            testStr += "void func() {while (true) {continue; break;} return; }";
+            testStr += "for (;true;) {y = y + 1; if (y == 10) break; continue; }";
+            testStr += "void func2() {while (true) {break; continue;} return; }";
+            testStr += "for (;true;) {y = y + 1; if (y == 10) continue; break; }";
+            ArrayList<Variable> funcParams = new ArrayList<Variable>() {{
+            }};
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // declare y
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Int64_T(0))));
+                add(Statement.declareVariable(new Variable("y", new Int32_T())));
+                add(Statement.assignVariable(true, 0, true, -1));
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func", new Void_T(), funcParams, 4)));
+                add(Statement.jumpRel(10));
+                // while condition
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(1)); // condition
+                add(Statement.jumpRel(5));
+                // body
+                add(Statement.continueLoop(1, 3));
+                add(Statement.breakLoop(1, 3));
+                add(Statement.clearStack(0)); // scope
+                // loop to while
+                add(Statement.clearStack(1)); // body + condition
+                add(Statement.jumpRel(-9)); // -(body + condition + 1)
+                add(Statement.functionReturn(false, 0));
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("3_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("4_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("5_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("6_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(4 + 1, 8));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.continueLoop(2, 1));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+
+                // define function
+                add(Statement.declareVariable(new FunctionVariable("func2", new Void_T(), funcParams, 35)));
+                add(Statement.jumpRel(10));
+                // while condition
+                add(Statement.declareVariable(new Variable("7_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(1)); // condition
+                add(Statement.jumpRel(5));
+                // body
+                add(Statement.breakLoop(1, 4));
+                add(Statement.continueLoop(1, 2));
+                add(Statement.clearStack(0)); // scope
+                // loop to while
+                add(Statement.clearStack(1)); // body + condition
+                add(Statement.jumpRel(-9)); // -(body + condition + 1)
+                add(Statement.functionReturn(false, 0));
+
+                // for init
+                // for condition
+                add(Statement.declareVariable(new Variable("8_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(false, 14 + 1 + 1, true, 0)); // body + increment + 1
+                // body
+                add(Statement.declareVariable(new Variable("9_COMPILER_TEMP", new Int64_T(1))));
+                add(Statement.declareVariable(new Variable("10_COMPILER_TEMP", new Int32_T())));
+                add(Statement.binaryOp(Token.Type.OP_PLUS, true, 0, false, 1, true, -1));
+                add(Statement.assignVariable(false, 1, true, 0));
+                    // if condition
+                    add(Statement.declareVariable(new Variable("11_COMPILER_TEMP", new Int64_T(10))));
+                    add(Statement.declareVariable(new Variable("12_COMPILER_TEMP", new Int32_T())));
+                    add(Statement.binaryOp(Token.Type.OP_EQUAL, true, 0, false, 1, true, -1));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.continueLoop(2 + 2, 5));
+                    add(Statement.clearStack(2)); // skip else
+                    add(Statement.jumpRel(1)); // skip else
+                    // else body
+                    add(Statement.clearStack(2));
+                add(Statement.breakLoop(3, 4));
+                add(Statement.clearStack(2)); // scope
+                // for increment
+                add(Statement.clearStack(0 + 1)); // increment + condition
+                // loop to condition
+                add(Statement.jumpRel(-(1+14+2+1))); // -(increment + body + condition + 1)
+                // clear for loop stack
+                add(Statement.clearStack(0 + 1)); // init + condition
+
+                // clear stack
+                add(Statement.clearStack(4));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+
+            CompareStatementLists(instr, result);
+        }
     }
 
     @Test public void testLoops() {
@@ -412,6 +1059,42 @@ public class CompilerTest {
 
                 // clear stack
                 add(Statement.clearStack(4));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+
+            CompareStatementLists(instr, result);
+        }
+        {
+            String testStr = "while (true) {break;}";
+            testStr += "while (true) {continue;}";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // while condition
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(1)); // condition
+                add(Statement.jumpRel(4));
+                // body
+                add(Statement.breakLoop(1, 3));
+                add(Statement.clearStack(0)); // scope
+                // loop to while
+                add(Statement.clearStack(1)); // body + condition
+                add(Statement.jumpRel(-(3+4+1))); // -(body + condition + 1)
+
+                // while condition
+                add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(1)); // condition
+                add(Statement.jumpRel(4));
+                // body
+                add(Statement.continueLoop(1, 2));
+                add(Statement.clearStack(0)); // scope
+                // loop to while
+                add(Statement.clearStack(1)); // body + condition
+                add(Statement.jumpRel(-(3+4+1))); // -(body + condition + 1)
+
+                // clear stack
+                add(Statement.clearStack(0));
             }};
 
             ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));

@@ -264,6 +264,27 @@ public class InterpreterTest {
                 Assertions.assertEquals(new Int32_T(2+5+3).getValue(), result.value.getValue());
             }
         }
+        {
+            String testStr = "int64 value = 5;";
+            testStr += "void test(int32 amount) { return; }";
+            testStr += "int32 foo(int32 PARAM1, int32 PARAM2) { int32 x = PARAM1 + value; return x + PARAM2; }";
+            testStr += "int32 bar(bool PARAM1, uint64 PARAM2) { if (PARAM1 == true) return PARAM2; return 0; }";
+            testStr += "int32 result = foo(2, 3);";
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+
+            ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            Interpreter interpreter = new Interpreter();
+            instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+            interpreter.setStatements(instr);
+            interpreter.execute();
+            results.add(interpreter.getStack()); 
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.peek();
+                Assertions.assertEquals("result", result.name);
+                Assertions.assertEquals(new Int32_T(2+5+3).getValue(), result.value.getValue());
+            }
+        }
     }
 
     @Test public void testConditionals() {
