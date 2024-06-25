@@ -812,7 +812,52 @@ public class CompilerTest {
             CompareStatementLists(instr, result);
         }
     }
+    @Test public void testConditionals() {
+        {
+            String testStr = "while (true) {";
+            testStr += "if (false) break;";
+            testStr += "else {if (false) continue;}";
+            testStr += "}";
+            ArrayList<Statement> instr = new ArrayList<Statement>() {{
+                // while condition
+                add(Statement.declareVariable(new Variable("0_COMPILER_TEMP", new Bool_T(true))));
+                add(Statement.jumpRelConditional(true, 2, true, 0));
+                add(Statement.clearStack(1)); // condition
+                add(Statement.jumpRel(16));
+                // body
+                    // if condition
+                    add(Statement.declareVariable(new Variable("1_COMPILER_TEMP", new Bool_T(false))));
+                    add(Statement.jumpRelConditional(false, 3, true, 0));
+                    // true body
+                    add(Statement.breakLoop(1 + 1, 13));
+                    add(Statement.clearStack(1)); // skip else
+                    add(Statement.jumpRel(8)); // skip else
+                    // else body
+                        // if condition
+                        add(Statement.declareVariable(new Variable("2_COMPILER_TEMP", new Bool_T(false))));
+                        add(Statement.jumpRelConditional(false, 3, true, 0));
+                        // true body
+                        add(Statement.continueLoop(1 + 1 + 1, 7));
+                        add(Statement.clearStack(1)); // skip else
+                        add(Statement.jumpRel(1)); // skip else
+                        // else body
+                        add(Statement.clearStack(1));
+                        add(Statement.clearStack(0)); // else scope
+                    add(Statement.clearStack(1)); // if cleanup
+                    add(Statement.clearStack(0)); // scope
 
+                // loop to while
+                add(Statement.clearStack(1)); // body + condition
+                add(Statement.jumpRel(-(15+4+1))); // -(body + condition + 1)
+
+                // clear stack
+                add(Statement.clearStack(0));
+            }};
+
+            ArrayList<Statement> result = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            CompareStatementLists(instr, result);
+        }
+    }
     @Test public void testLoops() {
         {
             String testStr = "int32 x = 10; int32 y = 0; while (x > 0) {x = x - 1; y = y + 1;}";

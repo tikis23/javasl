@@ -461,6 +461,7 @@ public class Compiler {
                 }
             }
         }
+        m_functionIp++; // true body skip false body (removed later if no false body is present)
 
         // compile false body
         ArrayList<Statement> falseBody = null;
@@ -496,10 +497,12 @@ public class Compiler {
             removeVariableFromScope(var);
         }
 
-        // create jump instructions
+        // if false body exists skip it at the end of true body
         if (falseBody != null) {
             trueBody.add(Statement.jumpRel(falseBody.size()));
-            m_functionIp++;
+            // IP increment is after compiling true body
+        } else {
+            m_functionIp--; // decrement because no false body present
         }
         ret.add(Statement.jumpRelConditional(false, trueBody.size(), conditionRel, conditionIndex));
         // IP increment is after compiling the condition
