@@ -285,6 +285,75 @@ public class InterpreterTest {
                 Assertions.assertEquals(new Int32_T(2+5+3).getValue(), result.value.getValue());
             }
         }
+        {
+            String testStr = "int64 getVal(int64 val) { val = val - 1; return val; }";
+            testStr += "int64 result = getVal(5);";
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+
+            ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            Interpreter interpreter = new Interpreter();
+            instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+            interpreter.setStatements(instr);
+            interpreter.execute();
+            results.add(interpreter.getStack()); 
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.peek();
+                Assertions.assertEquals("result", result.name);
+                Assertions.assertEquals(new Int64_T(4).getValue(), result.value.getValue());
+            }
+        }
+        {
+            String testStr = "int64 getVal(int64 val, int64 dummy) { while (val > 0) { val = val - 1; dummy = dummy + 1; }";
+            testStr += "return dummy;}";
+            testStr += "int64 result = getVal(5, 0);";
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+
+            ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            Interpreter interpreter = new Interpreter();
+            instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+            interpreter.setStatements(instr);
+            interpreter.execute();
+            results.add(interpreter.getStack()); 
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.peek();
+                Assertions.assertEquals("result", result.name);
+                Assertions.assertEquals(new Int64_T(5).getValue(), result.value.getValue());
+            }
+        }
+        {
+            String testStr = "int64 y = 0;";
+            testStr += "int64 random() { return 42; }";
+            testStr += "void addToY(int32 amount) { y = y + amount; return; }";
+            testStr += "void removeFromY(int32 amount) { y = y - amount; return; }";
+            testStr += "void randMove(int32 steps, int32 amount) {";
+            testStr += "    int64 rand = random();";
+            testStr += "    while (steps > 0) {";
+            testStr += "        if (rand < 50) addToY(amount);";
+            testStr += "        else removeFromY(amount);";
+            testStr += "        steps = steps - 1;";
+            testStr += "    }";
+            testStr += "    return;";
+            testStr += "}";
+            testStr += "int64 getY() { randMove(10, 10); return y; }";
+            testStr += "getY();";
+            testStr += "int64 result = getY();";
+            ArrayList<Stack<Variable>> results = new ArrayList<>();
+
+            ArrayList<Statement> instr = new Compiler().compile(new Parser().parse(new Tokenizer().tokenize(testStr)));
+            Interpreter interpreter = new Interpreter();
+            instr.remove(instr.size() - 1); // remove stack clear instruction to see variables
+            interpreter.setStatements(instr);
+            interpreter.execute();
+            results.add(interpreter.getStack()); 
+
+            for (Stack<Variable> stack : results) {
+                Variable result = stack.peek();
+                Assertions.assertEquals("result", result.name);
+                Assertions.assertEquals(new Int64_T(200).getValue(), result.value.getValue());
+            }
+        }
     }
 
     @Test public void testConditionals() {
